@@ -30,8 +30,6 @@ func main() {
 		Height:            800,
 		MinWidth:          500,
 		MinHeight:         500,
-		MaxWidth:          1280,
-		MaxHeight:         800,
 		DisableResize:     false,
 		Fullscreen:        false,
 		Frameless:         runtime.GOOS == "windows",

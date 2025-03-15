@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ title = "VoidWorks" }) => {
           onClick={handleMinimize}
           className="hover:bg-[rgba(125,50,95,0.6)] rounded-full w-6 h-6 flex items-center justify-center focus:outline-none"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
           </svg>
         </button>
@@ -63,14 +63,13 @@ const Header: React.FC<HeaderProps> = ({ title = "VoidWorks" }) => {
           className="hover:bg-[rgba(125,50,95,0.6)] rounded-full w-6 h-6 flex items-center justify-center focus:outline-none"
         >
           {isMaximized ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mt-0.1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9h6v6H9z" />
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h8v8H4V8z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4h8v8h-8V4z" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mt-0.1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
             </svg>
           )}
         </button>

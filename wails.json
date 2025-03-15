@@ -1,0 +1,13 @@
+{
+  "name": "voidworks",
+  "outputfilename": "voidworks",
+  "frontend:install": "bun install",
+  "frontend:build": "bun run build",
+  "frontend:dev:watcher": "bun run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "xptea",
+    "email": "80608102+xptea@users.noreply.github.com"
+  },
+  "obfuscate": true
+}

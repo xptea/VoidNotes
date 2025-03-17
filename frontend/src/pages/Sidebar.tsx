@@ -5,7 +5,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { CustomCSSProperties } from '../types/styles';
 import sidebarLeftIcon from '../assets/sidebar-left.svg';
 import sidebarRightIcon from '../assets/sidebar-right.svg';
-import InputModal from '../components/modals/InputModal';
+import InputModal from '../components/modals/MainModal';
 
 interface SidebarProps {
   className?: string;

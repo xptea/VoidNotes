@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToolbarButton } from './ToolbarButton';
+import { ToolbarButton } from './Toolbar';
 import { fontFamilyOptions } from './constants';
 
 interface ToolbarProps {

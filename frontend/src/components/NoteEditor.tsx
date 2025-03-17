@@ -1,161 +1,118 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNotes, Note } from '../contexts/NotesContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
+
+// Group TipTap extensions import
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Heading from '@tiptap/extension-heading';
-import BulletList from '@tiptap/extension-bullet-list';
-import OrderedList from '@tiptap/extension-ordered-list';
-import CodeBlock from '@tiptap/extension-code-block';
-import Link from '@tiptap/extension-link';
-import Underline from '@tiptap/extension-underline';
-import TextStyle from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
-import Highlight from '@tiptap/extension-highlight';
-import FontFamily from '@tiptap/extension-font-family';
-import Superscript from '@tiptap/extension-superscript';
-import Subscript from '@tiptap/extension-subscript';
-import Table from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableCell from '@tiptap/extension-table-cell';
-import TableHeader from '@tiptap/extension-table-header';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import Blockquote from '@tiptap/extension-blockquote';
-import Dropcursor from '@tiptap/extension-dropcursor';
-import Image from '@tiptap/extension-image';
-import HorizontalRule from '@tiptap/extension-horizontal-rule';
-import InputModal from './modals/InputModal';
-import { Toolbar } from './NoteEditorCO/Toolbar';
-import { StatusBar } from './NoteEditorCO/StatusBar';
-import { useDebounce } from './NoteEditorCO/hooks/useDebounce';
+import { 
+  BulletList, OrderedList, CodeBlock, Link, Underline, TextStyle, 
+  Color, Highlight, FontFamily, Superscript, Subscript, Table, 
+  TableRow, TableCell, TableHeader, TaskList, TaskItem, 
+  Blockquote, Dropcursor, Image, HorizontalRule 
+} from './utils/tiptapExtensions';
+
+// Local imports
+import InputModal from './modals/MainModal';
+import { Toolbar, StatusBar, useDebounce } from './noteeditorcomponents';
+
+// TipTap editor extensions configuration
+const EDITOR_EXTENSIONS = [
+  StarterKit.configure({ heading: false, blockquote: false }),
+  Placeholder.configure({ placeholder: 'Start writing your note here...' }),
+  Underline,
+  Link.configure({ openOnClick: false }),
+  Heading.configure({ levels: [1, 2, 3] }),
+  BulletList, OrderedList, CodeBlock, TextStyle, Color,
+  Highlight.configure({ multicolor: true }),
+  FontFamily.configure({ types: ['textStyle'] }),
+  Superscript, Subscript,
+  Table.configure({ resizable: true }),
+  TableRow, TableHeader, TableCell,
+  TaskList, TaskItem.configure({ nested: true }),
+  Blockquote, Dropcursor, Image, HorizontalRule,
+];
 
 const NoteEditor: React.FC = () => {
   const { getActiveNote, updateNote } = useNotes();
   const { getScrollbarStyle } = useSettings();
   const [note, setNote] = useState<Note | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const lastChangeTimeRef = useRef<number>(0);
-  const changesCountRef = useRef<number>(0);
-  const [wordCount, setWordCount] = useState(0);
-  const [charCount, setCharCount] = useState(0);
-
-  const scrollbarStyle = getScrollbarStyle();
-  const darkerScrollbarColor = scrollbarStyle['--scrollbar-thumb-color']?.replace(
-    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
-    (_, r, g, b, a) => `rgba(${Math.max(0, Number(r) - 20)}, ${Math.max(0, Number(g) - 20)}, ${Math.max(0, Number(b) - 20)}, ${a || 1})`
-  );
-  const darkerBackground = 'rgba(255, 255, 255, 0.03)';
-  const customScrollbarClass = "scrollbar-custom";
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: false,
-        blockquote: false,
-      }),
-      Placeholder.configure({
-        placeholder: 'Start writing your note here...',
-      }),
-      Underline,
-      Link.configure({
-        openOnClick: false,
-      }),
-      Heading.configure({
-        levels: [1, 2, 3],
-      }),
-      BulletList,
-      OrderedList,
-      CodeBlock,
-      TextStyle,
-      Color,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      FontFamily.configure({
-        types: ['textStyle'],
-      }),
-      Superscript,
-      Subscript,
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-      Blockquote,
-      Dropcursor,
-      Image,
-      HorizontalRule,
-    ],
-    editorProps: {
-      attributes: {
-        class: `prose prose-invert max-w-none p-4 focus:outline-none overflow-y-auto ${customScrollbarClass}`,
-        style: `--scrollbar-thumb-color: ${darkerScrollbarColor}; --scrollbar-track-color: ${darkerBackground};`,
-      },
-    },
-    onUpdate: ({ editor }) => {
-      if (!note) return;
-      
-      const newContent = editor.getHTML();
-      const text = editor.state.doc.textContent;
-      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-      const chars = text.length;
-      
-      setWordCount(words);
-      setCharCount(chars);
-
-      const now = Date.now();
-      changesCountRef.current += 1;
-      
-      const significantTimePassed = (now - lastChangeTimeRef.current) > 500;
-      const enoughChanges = changesCountRef.current >= 5;
-      
-      if (enoughChanges || significantTimePassed) {
-        setIsSaving(true);
-        saveNote({
-          ...note,
-          content: newContent
-        });
-        lastChangeTimeRef.current = now;
-      }
-    }
+  
+  const [modals, setModals] = useState({
+    image: false,
+    link: false,
+  });
+  
+  const [textStats, setTextStats] = useState({
+    wordCount: 0,
+    charCount: 0,
   });
 
-  useEffect(() => {
-    const activeNote = getActiveNote();
-    setNote(activeNote);
-    
-    if (activeNote && editor) {
-      if (!editor.isDestroyed) {
-        editor.commands.setContent(activeNote.content);
-      }
-      changesCountRef.current = 0;
-    }
-  }, [getActiveNote, editor]);
+  const lastChangeTimeRef = useRef<number>(0);
+  const changesCountRef = useRef<number>(0);
 
-  const formatDate = (date: Date | null | undefined): string => {
-    if (!date) return 'Unknown';
+  const scrollbarConfig = useMemo(() => {
+    const style = getScrollbarStyle();
+    const darkerScrollbarColor = style['--scrollbar-thumb-color']?.replace(
+      /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
+      (_, r, g, b, a) => `rgba(${Math.max(0, Number(r) - 20)}, ${Math.max(0, Number(g) - 20)}, ${Math.max(0, Number(b) - 20)}, ${a || 1})`
+    );
+    const darkerBackground = 'rgba(255, 255, 255, 0.03)';
     
-    if (!(date instanceof Date)) {
-      date = new Date(date);
-    }
+    return {
+      class: "scrollbar-custom",
+      style: {
+        "--scrollbar-thumb-color": darkerScrollbarColor,
+        "--scrollbar-track-color": darkerBackground,
+      } as React.CSSProperties
+    };
+  }, [getScrollbarStyle]);
 
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  const handleEditorUpdate = useCallback(({ editor }: { editor: Editor }) => {
+    if (!note) return;
+    
+    const newContent = editor.getHTML();
+    const text = editor.state.doc.textContent;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    
+    setTextStats({
+      wordCount: words,
+      charCount: text.length
     });
-  };
+
+    const now = Date.now();
+    changesCountRef.current += 1;
+    
+    const significantTimePassed = (now - lastChangeTimeRef.current) > 500;
+    const enoughChanges = changesCountRef.current >= 5;
+    
+    if (enoughChanges || significantTimePassed) {
+      setIsSaving(true);
+      saveNote({
+        ...note,
+        content: newContent
+      });
+      lastChangeTimeRef.current = now;
+    }
+  }, [note]);
+
+  const editorConfig = useMemo(() => ({
+    extensions: EDITOR_EXTENSIONS,
+    editorProps: {
+      attributes: {
+        class: `prose prose-invert max-w-none p-4 focus:outline-none overflow-y-auto ${scrollbarConfig.class}`,
+        style: Object.entries(scrollbarConfig.style)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join('; ')
+      },
+    },
+    onUpdate: handleEditorUpdate
+  }), [handleEditorUpdate, scrollbarConfig]);
+
+  const editor = useEditor(editorConfig);
 
   const saveNote = useDebounce((updatedNote: Note) => {
     updateNote(updatedNote);
@@ -163,18 +120,26 @@ const NoteEditor: React.FC = () => {
     changesCountRef.current = 0;
   }, 1500);
 
-  const addImage = useCallback((url: string) => {
-    if (editor) {
-      editor.chain().focus().setImage({ src: url }).run();
+  useEffect(() => {
+    const activeNote = getActiveNote();
+    setNote(activeNote);
+    
+    if (activeNote && editor && !editor.isDestroyed) {
+      editor.commands.setContent(activeNote.content);
+      changesCountRef.current = 0;
     }
-    setIsImageModalOpen(false);
-  }, [editor]);
+  }, [getActiveNote, editor]);
 
-  const addLink = useCallback((url: string) => {
-    if (editor) {
+  const handleMedia = useCallback((url: string, type: 'image' | 'link') => {
+    if (!editor) return;
+    
+    if (type === 'image') {
+      editor.chain().focus().setImage({ src: url }).run();
+      setModals(prev => ({ ...prev, image: false }));
+    } else {
       editor.chain().focus().setLink({ href: url }).run();
+      setModals(prev => ({ ...prev, link: false }));
     }
-    setIsLinkModalOpen(false);
   }, [editor]);
 
   if (!note) {
@@ -194,42 +159,36 @@ const NoteEditor: React.FC = () => {
       <div className="editor-container flex flex-col w-full h-[calc(100vh-6rem)] rounded-lg overflow-hidden border border-white/10">
         <Toolbar 
           editor={editor} 
-          onImageClick={() => setIsImageModalOpen(true)}
-          onLinkClick={() => setIsLinkModalOpen(true)}
+          onImageClick={() => setModals(prev => ({ ...prev, image: true }))}
+          onLinkClick={() => setModals(prev => ({ ...prev, link: true }))}
         />
         
-        <div className={`flex-1 bg-white/5 backdrop-blur-md border-b border-l border-r border-white/10 rounded-b-lg overflow-y-auto ${customScrollbarClass}`}>
-          <EditorContent 
-            editor={editor}
-            className="h-full"
-            style={{
-              "--scrollbar-thumb-color": darkerScrollbarColor,
-              "--scrollbar-track-color": darkerBackground,
-            } as React.CSSProperties}
-          />
+        <div className={`flex-1 bg-white/5 backdrop-blur-md border-b border-l border-r border-white/10 rounded-b-lg overflow-y-auto ${scrollbarConfig.class}`}
+             style={scrollbarConfig.style}>
+          <EditorContent editor={editor} className="h-full" />
         </div>
       </div>
       
       <StatusBar
         note={note}
-        wordCount={wordCount}
-        charCount={charCount}
+        wordCount={textStats.wordCount}
+        charCount={textStats.charCount}
         isSaving={isSaving}
       />
 
       <InputModal
-        isOpen={isImageModalOpen}
-        onClose={() => setIsImageModalOpen(false)}
-        onConfirm={addImage}
+        isOpen={modals.image}
+        onClose={() => setModals(prev => ({ ...prev, image: false }))}
+        onConfirm={(url) => handleMedia(url, 'image')}
         title="Add Image"
         placeholder="Enter image URL"
         confirmText="Add Image"
         inputType="url"
       />
       <InputModal
-        isOpen={isLinkModalOpen}
-        onClose={() => setIsLinkModalOpen(false)}
-        onConfirm={addLink}
+        isOpen={modals.link}
+        onClose={() => setModals(prev => ({ ...prev, link: false }))}
+        onConfirm={(url) => handleMedia(url, 'link')}
         title="Add Link"
         placeholder="Enter URL"
         confirmText="Add Link"

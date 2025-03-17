@@ -15,13 +15,18 @@ A modern, lightweight, and customizable note-taking application built with Go an
 - ⚡ Real-time saving
 - 📊 Word and character count
 - 📋 Task lists and tables support
-- 🖼️ Image embedding support
 
 ## Installation
 
 1. Go to the [releases page](https://github.com/xptea/VoidNotes/releases)
 2. Download the latest version for your platform
 3. Run the installer
+   
+   **Note for Mac users:** Since this is an open source project and the code isn't signed:
+   - Move the .app file to your preferred folder
+   - Open Terminal and run: `sudo xattr -cr VoidNotes_MacOS_ARM.app`
+   - Alternatively, you can rebuild and compile the project yourself from source
+
 4. Start writing!
 
 ## Usage
@@ -55,10 +60,11 @@ VoidNotes offers extensive UI customization options:
 ## Roadmap
 
 ### 2025
+- [ ] Image embedding support
 - [ ] Cloud sync support
 - [ ] Enhanced text styling options
 - [ ] Note templates
-- [ ] Export options (PDF, HTML)
+- [ ] Export options (PDF, HTML, Txt)
 - [ ] Custom themes marketplace
 - [ ] Note version history
 - [ ] Note encryption

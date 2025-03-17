@@ -1,6 +1,6 @@
 {
-  "name": "voidworks",
-  "outputfilename": "voidworks",
+  "name": "voidnotes",
+  "outputfilename": "voidnotes",
   "frontend:install": "bun install",
   "frontend:build": "bun run build",
   "frontend:dev:watcher": "bun run dev",

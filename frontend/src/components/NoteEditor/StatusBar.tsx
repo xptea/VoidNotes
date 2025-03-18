@@ -13,9 +13,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({ wordCount, charCount, isSa
   const [showSaved, setShowSaved] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   
-  // Handle saving animation
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     
     if (!isSaving && !showSaved) {
       setShowSaved(true);

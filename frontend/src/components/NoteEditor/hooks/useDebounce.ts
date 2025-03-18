@@ -4,7 +4,7 @@ export function useDebounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
-  const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
+  const [timerId, setTimerId] = useState<number | null>(null);
 
   useEffect(() => {
     return () => {

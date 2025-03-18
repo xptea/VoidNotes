@@ -81,17 +81,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({ editor, onImageClick, onLinkCl
         >
           x<sub>2</sub>
         </ToolbarButton>
-        <select 
-          onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
-          className="bg-white/10 text-white/90 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
-          value={editor.getAttributes('textStyle').fontFamily}
-        >
-          {fontFamilyOptions.map(font => (
-            <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-              {font.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select 
+            onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
+            className="appearance-none bg-white/10 text-white/90 rounded px-2 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
+            value={editor.getAttributes('textStyle').fontFamily}
+          >
+            {fontFamilyOptions.map(font => (
+              <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                {font.label}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white/70">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+            </svg>
+          </div>
+        </div>
       </div>
       <div className="h-5 w-px bg-white/20 mx-1" />
       <div className="flex items-center gap-1">
@@ -138,7 +145,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({ editor, onImageClick, onLinkCl
           active={editor.isActive('taskList')}
           title="Task List"
         >
-          ☐
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+            <path d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z"/>
+          </svg>
         </ToolbarButton>
       </div>
       <div className="h-5 w-px bg-white/20 mx-1" />
@@ -148,7 +158,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({ editor, onImageClick, onLinkCl
           active={editor.isActive('blockquote')}
           title="Quote"
         >
-          "
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-2.5a2 2 0 0 0-1.6.8L8 14.333 6.1 11.8a2 2 0 0 0-1.6-.8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2.5a1 1 0 0 1 .8.4l1.9 2.533a1 1 0 0 0 1.6 0l1.9-2.533a1 1 0 0 1 .8-.4H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+            <path d="M7.066 4.76A1.665 1.665 0 0 0 4 5.668a1.667 1.667 0 0 0 2.561 1.406c-.131.389-.375.804-.777 1.22a.417.417 0 1 0 .6.58c1.486-1.54 1.293-3.214.682-4.112zm4 0A1.665 1.665 0 0 0 8 5.668a1.667 1.667 0 0 0 2.561 1.406c-.131.389-.375.804-.777 1.22a.417.417 0 1 0 .6.58c1.486-1.54 1.293-3.214.682-4.112z"/>
+          </svg>
         </ToolbarButton>
         <ToolbarButton 
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
@@ -171,20 +184,28 @@ export const Toolbar: React.FC<ToolbarProps> = ({ editor, onImageClick, onLinkCl
           active={editor.isActive('table')}
           title="Insert Table"
         >
-          ⊞
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm4 4H6v3h4V8z"/>
+          </svg>
         </ToolbarButton>
         <ToolbarButton 
           onClick={onImageClick}
           title="Insert Image"
         >
-          🖼
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+            <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zm13 1a.5.5 0 0 1 .5.5v6l-3.775-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12v.54A.505.505 0 0 1 1 12.5v-9a.5.5 0 0 1 .5-.5h13z"/>
+          </svg>
         </ToolbarButton>
         <ToolbarButton 
           onClick={onLinkClick}
           active={editor.isActive('link')}
           title="Add Link"
         >
-          🔗
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
+            <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
+          </svg>
         </ToolbarButton>
       </div>
       {editor.isActive('table') && (
@@ -195,43 +216,57 @@ export const Toolbar: React.FC<ToolbarProps> = ({ editor, onImageClick, onLinkCl
               onClick={() => editor.chain().focus().addColumnBefore().run()}
               title="Add Column Before"
             >
-              ←|
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
             </ToolbarButton>
             <ToolbarButton 
               onClick={() => editor.chain().focus().addColumnAfter().run()}
               title="Add Column After"
             >
-              |→
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
             </ToolbarButton>
             <ToolbarButton 
               onClick={() => editor.chain().focus().addRowBefore().run()}
               title="Add Row Before"
             >
-              ↑_
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
             </ToolbarButton>
             <ToolbarButton 
               onClick={() => editor.chain().focus().addRowAfter().run()}
               title="Add Row After"
             >
-              _↓
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
             </ToolbarButton>
             <ToolbarButton 
               onClick={() => editor.chain().focus().deleteColumn().run()}
               title="Delete Column"
             >
-              -|
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
             </ToolbarButton>
             <ToolbarButton 
               onClick={() => editor.chain().focus().deleteRow().run()}
               title="Delete Row"
             >
-              -_
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
             </ToolbarButton>
             <ToolbarButton 
               onClick={() => editor.chain().focus().deleteTable().run()}
               title="Delete Table"
             >
-              ⊟
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
             </ToolbarButton>
           </div>
         </>

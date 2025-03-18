@@ -113,7 +113,6 @@ const NoteEditor: React.FC = () => {
 
   const editor = useEditor(editorConfig);
 
-  // Immediately save content without debounce when it's important
   const saveNoteContentImmediately = useCallback((content: string) => {
     if (!note) return;
     
@@ -135,11 +134,12 @@ const NoteEditor: React.FC = () => {
     }
   }, [note, updateNote]);
 
-  // Debounced save function with error handling
   const debouncedSave = useDebounce((updatedContent: string) => {
     if (!note || pendingSaveRef.current) return;
     
-    console.log(`Debounced save for note ${note.id}, content length: ${updatedContent.length}`);
+    if (updatedContent === lastSavedContentRef.current) return;
+    
+    console.log(`Debounced save for note ${note.id}`);
     pendingSaveRef.current = true;
     
     try {
@@ -149,39 +149,38 @@ const NoteEditor: React.FC = () => {
         updatedAt: new Date()
       });
       lastSavedContentRef.current = updatedContent;
-      console.log(`Debounced save completed for note ${note.id}`);
     } catch (err) {
       console.error("Failed in debounced save:", err);
     } finally {
       pendingSaveRef.current = false;
     }
-  }, 300);
+  }, 1000);
 
-  // Handle content changes in the editor
-  const handleEditorUpdate = useCallback(({ editor }: { editor: Editor }) => {
-    if (!note || !editor) return;
+  const handleEditorUpdate = useCallback(({ editor, transaction }: { editor: Editor, transaction: any }) => {
+    if (!note || !editor || editor.isDestroyed) return;
+    
+    if (!transaction.docChanged) return;
     
     const newContent = editor.getHTML();
+    
+    if (newContent === editorContentRef.current) return;
+    
     editorContentRef.current = newContent;
     
-    // Update text stats
     const text = editor.state.doc.textContent;
     setTextStats({
       wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
       charCount: text.length
     });
     
-    // Queue up a save operation
     debouncedSave(newContent);
   }, [note, debouncedSave]);
 
-  // Force save the current note content - used before switching notes
   const forceSaveContent = useCallback(() => {
     if (!editor || !note) return false;
     
     const currentContent = editor.getHTML();
     
-    // Only save if content has actually changed
     if (currentContent !== lastSavedContentRef.current) {
       console.log(`Force saving note ${note.id} before switching`);
       saveNoteContentImmediately(currentContent);
@@ -191,8 +190,7 @@ const NoteEditor: React.FC = () => {
     return false;
   }, [editor, note, saveNoteContentImmediately]);
 
-  // Safe version of setActiveNoteId that checks for unsaved changes first
-  const switchToNote = useCallback((newNoteId: string | null) => {
+  useCallback((newNoteId: string | null) => {
     if (!editor || !note) {
       setActiveNoteId(newNoteId);
       return;
@@ -200,7 +198,6 @@ const NoteEditor: React.FC = () => {
     
     const currentContent = editor.getHTML();
     
-    // Check if there are unsaved changes
     if (currentContent !== lastSavedContentRef.current) {
       console.log("Unsaved changes detected, saving before switch");
       saveNoteContentImmediately(currentContent);
@@ -209,16 +206,13 @@ const NoteEditor: React.FC = () => {
     setActiveNoteId(newNoteId);
   }, [editor, note, setActiveNoteId, saveNoteContentImmediately]);
 
-  // Update editor when active note changes
   useEffect(() => {
-    // Track when activeNoteId changes to load the new note
     const loadNewNote = async () => {
       const currentNoteId = previousNoteIdRef.current;
       const newActiveNote = getActiveNote();
       
       console.log(`Note switching from ${currentNoteId} to ${activeNoteId}`);
       
-      // Save previous note if it exists and has changed
       if (currentNoteId && editor && note) {
         const currentContent = editor.getHTML();
         if (currentContent !== lastSavedContentRef.current) {
@@ -227,7 +221,6 @@ const NoteEditor: React.FC = () => {
         }
       }
       
-      // Update the previous note ref for next time
       previousNoteIdRef.current = activeNoteId;
       
       if (!newActiveNote) {
@@ -235,19 +228,16 @@ const NoteEditor: React.FC = () => {
         return;
       }
       
-      // Set the new note
       setNote(newActiveNote);
       
-      if (editor && !editor.isDestroyed) {
-        // Set the editor content
+      if (editor && !editor.isDestroyed && (!note || note.id !== newActiveNote.id)) {
         const contentToSet = newActiveNote.content || '';
+        const { from, to } = editor.state.selection;
         editor.commands.setContent(contentToSet);
         
-        // Update our content tracking refs
         editorContentRef.current = contentToSet;
         lastSavedContentRef.current = contentToSet;
         
-        // Update text stats
         const text = editor.state.doc.textContent;
         setTextStats({
           wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
@@ -261,18 +251,27 @@ const NoteEditor: React.FC = () => {
     loadNewNote();
   }, [activeNoteId, editor, getActiveNote, saveNoteContentImmediately, note]);
 
-  // Set up editor event listeners
   useEffect(() => {
     if (!editor) return;
     
+    const handleTransaction = () => {
+      if (pendingSaveRef.current) return;
+      
+      const newContent = editor.getHTML();
+      if (newContent !== editorContentRef.current) {
+        editorContentRef.current = newContent;
+      }
+    };
+    
+    editor.on('transaction', handleTransaction);
     editor.on('update', handleEditorUpdate);
     
     return () => {
+      editor.off('transaction', handleTransaction);
       editor.off('update', handleEditorUpdate);
     };
   }, [editor, handleEditorUpdate]);
 
-  // Fetch app data directory
   useEffect(() => {
     GetAppDataDir().then(dir => {
       setAppDataDir(dir);
@@ -281,14 +280,12 @@ const NoteEditor: React.FC = () => {
     });
   }, []);
 
-  // Save content when unmounting
   useEffect(() => {
     return () => {
       forceSaveContent();
     };
   }, [forceSaveContent]);
 
-  // Handle periodic save to ensure content is saved
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (note && editor && !pendingSaveRef.current) {
@@ -298,14 +295,13 @@ const NoteEditor: React.FC = () => {
           saveNoteContentImmediately(currentContent);
         }
       }
-    }, 2000); // Check every 2 seconds
+    }, 2000);
 
     return () => {
       clearInterval(intervalId);
     };
   }, [note, editor, saveNoteContentImmediately]);
 
-  // Save before window unload
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (note && editor) {
@@ -362,7 +358,7 @@ const NoteEditor: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
-      <div className="editor-container flex flex-col w-full h-[calc(100vh-6rem)] rounded-lg overflow-hidden border border-white/10">
+      <div className="editor-container flex flex-col w-full h-[calc(100vh-4rem)] rounded-lg overflow-hidden border border-white/10">
         <Toolbar 
           editor={editor || null} 
           onImageClick={() => setModals(prev => ({ ...prev, image: true }))}
@@ -375,13 +371,15 @@ const NoteEditor: React.FC = () => {
         </div>
       </div>
       
-      <StatusBar
-        note={note}
-        wordCount={textStats.wordCount}
-        charCount={textStats.charCount}
-        isSaving={pendingSaveRef.current || saveStatus.isSaving}
-        appDataDir={appDataDir}
-      />
+      <div className="mt-1">
+        <StatusBar
+          note={note}
+          wordCount={textStats.wordCount}
+          charCount={textStats.charCount}
+          isSaving={pendingSaveRef.current || saveStatus.isSaving}
+          appDataDir={appDataDir}
+        />
+      </div>
 
       <InputModal
         isOpen={modals.image}

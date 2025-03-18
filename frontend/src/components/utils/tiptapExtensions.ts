@@ -19,15 +19,10 @@ import Dropcursor from '@tiptap/extension-dropcursor';
 import Image from '@tiptap/extension-image';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import { Extension } from '@tiptap/core';
-
-// Import CodeBlockLowlight instead of the default CodeBlock
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 
-// Import lowlight with highlight.js
 import { common, createLowlight } from 'lowlight';
 const lowlight = createLowlight(common);
-
-// Import specific languages from highlight.js
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
 import python from 'highlight.js/lib/languages/python';
@@ -41,12 +36,11 @@ import cpp from 'highlight.js/lib/languages/cpp';
 import java from 'highlight.js/lib/languages/java';
 import csharp from 'highlight.js/lib/languages/csharp';
 
-// Register commonly used languages
 lowlight.register('javascript', javascript);
 lowlight.register('typescript', typescript);
 lowlight.register('python', python);
 lowlight.register('css', css);
-lowlight.register('html', xml); // HTML is 'xml' in highlight.js
+lowlight.register('html', xml); 
 lowlight.register('json', json);
 lowlight.register('bash', bash);
 lowlight.register('go', go);
@@ -55,7 +49,6 @@ lowlight.register('cpp', cpp);
 lowlight.register('java', java);
 lowlight.register('csharp', csharp);
 
-// Create a spell check extension to disable spell checking in code blocks
 const DisableSpellcheckInCode = Extension.create({
   name: 'disableSpellcheckInCode',
   addGlobalAttributes() {
@@ -66,7 +59,7 @@ const DisableSpellcheckInCode = Extension.create({
           spellcheck: {
             default: 'false',
             parseHTML: element => element.getAttribute('spellcheck') || 'false',
-            renderHTML: attributes => {
+            renderHTML: () => {
               return {
                 spellcheck: 'false',
               }
@@ -78,7 +71,6 @@ const DisableSpellcheckInCode = Extension.create({
   },
 });
 
-// Configure the CodeBlock extension with lowlight and disable spell checking
 const CodeBlock = CodeBlockLowlight.configure({
   lowlight,
   defaultLanguage: 'javascript', 
@@ -88,13 +80,11 @@ const CodeBlock = CodeBlockLowlight.configure({
   }
 }).extend({
   addNodeView() {
-    return ({ node, editor, getPos, HTMLAttributes, decorations, extension }) => {
+    return ({ node }) => {
       const dom = document.createElement('pre');
       
-      // Ensure spellcheck is disabled
       dom.setAttribute('spellcheck', 'false');
       
-      // Add highlighting classes
       dom.classList.add('hljs');
       
       const content = document.createElement('code');

@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-// Note represents a single note
 type Note struct {
 	ID        string   `json:"id"`
 	Title     string   `json:"title"`
@@ -21,7 +20,6 @@ type Note struct {
 	Tags      []string `json:"tags,omitempty"`
 }
 
-// App struct
 type App struct {
 	ctx        context.Context
 	notesDir   string
@@ -29,16 +27,13 @@ type App struct {
 	logger     *log.Logger
 }
 
-// NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
 }
 
-// startup is called at application startup
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	// Initialize logger
 	logFile, err := os.OpenFile(filepath.Join(os.TempDir(), "voidnotes.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err == nil {
 		a.logger = log.New(logFile, "", log.LstdFlags)
@@ -49,7 +44,6 @@ func (a *App) startup(ctx context.Context) {
 
 	a.logger.Println("App starting up...")
 
-	// Initialize the app data directory
 	if err := a.initAppDataDir(); err != nil {
 		a.logger.Printf("Failed to initialize app data directory: %v", err)
 	} else {
@@ -58,26 +52,22 @@ func (a *App) startup(ctx context.Context) {
 	}
 }
 
-// initAppDataDir initializes the application data directory based on platform
 func (a *App) initAppDataDir() error {
 	var appDataPath string
 
 	if runtime.GOOS == "windows" {
-		// On Windows: C:\Users\{username}\AppData\Local\VoidNotes
 		appDataPath = os.Getenv("LOCALAPPDATA")
 		if appDataPath == "" {
 			appDataPath = filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local")
 		}
 		a.appDataDir = filepath.Join(appDataPath, "VoidNotes")
 	} else if runtime.GOOS == "darwin" {
-		// On macOS: ~/Library/Application Support/VoidNotes
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return err
 		}
 		a.appDataDir = filepath.Join(homeDir, "Library", "Application Support", "VoidNotes")
 	} else {
-		// Fallback for other platforms
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return err
@@ -85,12 +75,10 @@ func (a *App) initAppDataDir() error {
 		a.appDataDir = filepath.Join(homeDir, ".voidnotes")
 	}
 
-	// Create the app data directory if it doesn't exist
 	if err := os.MkdirAll(a.appDataDir, 0755); err != nil {
 		return err
 	}
 
-	// Create notes directory
 	a.notesDir = filepath.Join(a.appDataDir, "notes")
 	if err := os.MkdirAll(a.notesDir, 0755); err != nil {
 		return err
@@ -99,7 +87,6 @@ func (a *App) initAppDataDir() error {
 	return nil
 }
 
-// domReady is called after front-end resources have been loaded
 func (a *App) domReady(ctx context.Context) {
 	a.logger.Println("DOM ready")
 }
@@ -109,27 +96,22 @@ func (a *App) beforeClose(ctx context.Context) (prevent bool) {
 	return false
 }
 
-// shutdown is called at application termination
 func (a *App) shutdown(ctx context.Context) {
 	a.logger.Println("Application shutting down")
 }
 
-// Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show timee!", name)
 }
 
-// GetAppDataDir returns the application data directory path
 func (a *App) GetAppDataDir() string {
 	return a.appDataDir
 }
 
-// GetNotesDir returns the notes directory path
 func (a *App) GetNotesDir() string {
 	return a.notesDir
 }
 
-// SaveNote saves a note to the filesystem
 func (a *App) SaveNote(noteData string) error {
 	startTime := time.Now()
 	if a.logger != nil {
@@ -144,10 +126,7 @@ func (a *App) SaveNote(noteData string) error {
 		return fmt.Errorf("failed to unmarshal note: %w", err)
 	}
 
-	// Create filename from note ID
 	filename := filepath.Join(a.notesDir, note.ID+".json")
-
-	// Ensure the directory exists
 	if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
 		if a.logger != nil {
 			a.logger.Printf("Failed to create directory for note: %v", err)
@@ -161,7 +140,6 @@ func (a *App) SaveNote(noteData string) error {
 		a.logger.Printf("Writing to file: %s", filename)
 	}
 
-	// First write to a temporary file
 	tempFilename := filename + ".tmp"
 	if err := os.WriteFile(tempFilename, []byte(noteData), 0644); err != nil {
 		if a.logger != nil {
@@ -170,7 +148,6 @@ func (a *App) SaveNote(noteData string) error {
 		return fmt.Errorf("failed to write temporary note file: %w", err)
 	}
 
-	// Verify the data was written correctly
 	data, err := os.ReadFile(tempFilename)
 	if err != nil {
 		if a.logger != nil {
@@ -187,7 +164,6 @@ func (a *App) SaveNote(noteData string) error {
 		return fmt.Errorf("file size mismatch after writing")
 	}
 
-	// Now rename the temporary file to the final name (atomic operation)
 	if err := os.Rename(tempFilename, filename); err != nil {
 		if a.logger != nil {
 			a.logger.Printf("Failed to rename temporary file: %v", err)
@@ -200,7 +176,6 @@ func (a *App) SaveNote(noteData string) error {
 			note.ID, time.Since(startTime))
 	}
 
-	// Double-check that the file exists and has the correct size
 	fi, err := os.Stat(filename)
 	if err != nil {
 		if a.logger != nil {
@@ -220,14 +195,12 @@ func (a *App) SaveNote(noteData string) error {
 	return nil
 }
 
-// LoadNotes loads all notes from the filesystem
 func (a *App) LoadNotes() (string, error) {
 	startTime := time.Now()
 	if a.logger != nil {
 		a.logger.Println("LoadNotes called")
 	}
 
-	// Read all files in notes directory
 	files, err := os.ReadDir(a.notesDir)
 	if err != nil {
 		if a.logger != nil {
@@ -247,10 +220,8 @@ func (a *App) LoadNotes() (string, error) {
 			continue
 		}
 
-		filepath := filepath.Join(a.notesDir, file.Name())
-
-		// Read file content
-		content, err := os.ReadFile(filepath)
+		path := filepath.Join(a.notesDir, file.Name())
+		content, err := os.ReadFile(path)
 		if err != nil {
 			if a.logger != nil {
 				a.logger.Printf("Failed to read file %s: %v", file.Name(), err)
@@ -273,7 +244,6 @@ func (a *App) LoadNotes() (string, error) {
 		notes = append(notes, note)
 	}
 
-	// Convert notes to JSON
 	notesJSON, err := json.Marshal(notes)
 	if err != nil {
 		if a.logger != nil {
@@ -289,7 +259,6 @@ func (a *App) LoadNotes() (string, error) {
 	return string(notesJSON), nil
 }
 
-// DeleteNote deletes a note from the filesystem
 func (a *App) DeleteNote(noteID string) error {
 	if a.logger != nil {
 		a.logger.Printf("DeleteNote called for ID: %s", noteID)

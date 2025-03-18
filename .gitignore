@@ -55,3 +55,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+frontend/package.json.md5

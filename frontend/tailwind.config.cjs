@@ -1,3 +1,4 @@
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -17,6 +18,21 @@ module.exports = {
             '--tw-prose-hr': theme('colors.white / 20'),
             '--tw-prose-th-borders': theme('colors.white / 20'),
             '--tw-prose-td-borders': theme('colors.white / 10'),
+            'H1': {
+              marginTop: '0.1em',
+
+              marginBottom: '1rem',
+            },
+            'H2': {
+              marginTop: '0.1em',
+
+              marginBottom: '1rem',
+            },
+            'H3': {
+              marginTop: '0.1em',
+
+              marginBottom: '1rem',
+            },
             'p': {
               marginTop: '0.1em',
               marginBottom: '0.1em',
@@ -53,10 +69,6 @@ module.exports = {
               borderLeftColor: theme('colors.blue.500'),
               backgroundColor: 'rgba(255, 255, 255, 0.05)',
               borderRadius: '0.25rem',
-            },
-            'pre': {
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: '0.5rem',
             },
             'img': {
               borderRadius: '0.5rem',

@@ -1,6 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CustomCSSProperties } from '../types/styles';
+import React, { createContext, useContext, useState, useEffect, CSSProperties} from 'react';
 
+
+export interface CustomCSSProperties extends CSSProperties {
+  '--scrollbar-thumb-color'?: string;
+  '--scrollbar-track-color'?: string;
+}
 interface AppSettings {
   sidebarColor: string;
   sidebarOpacity: number;
@@ -66,6 +70,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       backgroundColor: `rgba(${settings.sidebarColor}, ${settings.sidebarOpacity})`,
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
+      background: `rgba(${settings.sidebarColor}, ${settings.sidebarOpacity})`,
     };
   };
 
@@ -74,6 +79,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       backgroundColor: `rgba(${settings.mainAreaColor}, ${settings.mainAreaOpacity})`,
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
+      background: `rgba(${settings.mainAreaColor}, ${settings.mainAreaOpacity})`,
     };
   };
 
@@ -82,6 +88,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       backgroundColor: `rgba(${settings.headerColor}, ${settings.headerOpacity})`,
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
+      background: `rgba(${settings.headerColor}, ${settings.headerOpacity})`,
     };
   };
 

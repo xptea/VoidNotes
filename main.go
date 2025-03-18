@@ -13,7 +13,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 )
 
-//go:embed all:frontend/dist
 var assets embed.FS
 
 //go:embed build/appicon.png
@@ -25,7 +24,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:             "testing-ui-go",
+		Title:             "VoidNotes",
 		Width:             1200,
 		Height:            800,
 		MinWidth:          500,
@@ -54,10 +53,17 @@ func main() {
 			WebviewIsTransparent:              true,
 			WindowIsTranslucent:               true,
 			DisableWindowIcon:                 false,
-			DisableFramelessWindowDecorations: true,
-			WebviewUserDataPath:               "",
-			ZoomFactor:                        1.0,
-			BackdropType:                      windows.Mica,
+			DisableFramelessWindowDecorations: false,
+			BackdropType:                      windows.None,
+			Theme:                             windows.SystemDefault,
+			CustomTheme: &windows.ThemeSettings{
+				DarkModeTitleBar:   windows.RGB(0, 0, 0),
+				DarkModeTitleText:  windows.RGB(255, 255, 255),
+				DarkModeBorder:     windows.RGB(0, 0, 0),
+				LightModeTitleBar:  windows.RGB(0, 0, 0),
+				LightModeTitleText: windows.RGB(255, 255, 255),
+				LightModeBorder:    windows.RGB(0, 0, 0),
+			},
 		},
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

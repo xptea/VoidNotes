@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNotes, Note } from '../contexts/NotesContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
+import { EditorView } from 'prosemirror-view';
 
-// Group TipTap extensions import
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Heading from '@tiptap/extension-heading';
@@ -11,48 +11,73 @@ import {
   BulletList, OrderedList, CodeBlock, Link, Underline, TextStyle, 
   Color, Highlight, FontFamily, Superscript, Subscript, Table, 
   TableRow, TableCell, TableHeader, TaskList, TaskItem, 
-  Blockquote, Dropcursor, Image, HorizontalRule 
+  Blockquote, Dropcursor, Image, HorizontalRule, DisableSpellcheckInCode 
 } from './utils/tiptapExtensions';
 
-// Local imports
 import InputModal from './modals/MainModal';
-import { Toolbar, StatusBar, useDebounce } from './noteeditorcomponents';
+import { StatusBar }from './NoteEditor/StatusBar';
+import {useDebounce} from './NoteEditor/hooks/useDebounce';
+import { Toolbar } from './NoteEditor/Toolbar';
+import { GetAppDataDir } from '../../wailsjs/go/main/App';
 
-// TipTap editor extensions configuration
 const EDITOR_EXTENSIONS = [
-  StarterKit.configure({ heading: false, blockquote: false }),
+  StarterKit.configure({ 
+    heading: false, 
+    blockquote: false,
+    codeBlock: false,
+  }),
   Placeholder.configure({ placeholder: 'Start writing your note here...' }),
   Underline,
   Link.configure({ openOnClick: false }),
   Heading.configure({ levels: [1, 2, 3] }),
-  BulletList, OrderedList, CodeBlock, TextStyle, Color,
+  BulletList, 
+  OrderedList, 
+  CodeBlock.configure({ 
+    HTMLAttributes: {
+      class: 'hljs',
+      spellcheck: 'false', 
+    },
+  }), 
+  DisableSpellcheckInCode,
+  TextStyle, 
+  Color,
   Highlight.configure({ multicolor: true }),
   FontFamily.configure({ types: ['textStyle'] }),
-  Superscript, Subscript,
+  Superscript, 
+  Subscript,
   Table.configure({ resizable: true }),
-  TableRow, TableHeader, TableCell,
-  TaskList, TaskItem.configure({ nested: true }),
-  Blockquote, Dropcursor, Image, HorizontalRule,
+  TableRow, 
+  TableHeader, 
+  TableCell,
+  TaskList, 
+  TaskItem.configure({ nested: true }),
+  Blockquote, 
+  Dropcursor, 
+  Image, 
+  HorizontalRule,
 ];
 
 const NoteEditor: React.FC = () => {
-  const { getActiveNote, updateNote } = useNotes();
+  const { getActiveNote, updateNote, isLoading, saveStatus, activeNoteId, setActiveNoteId } = useNotes();
   const { getScrollbarStyle } = useSettings();
   const [note, setNote] = useState<Note | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [appDataDir, setAppDataDir] = useState<string>("");
+  const previousNoteIdRef = useRef<string | null>(null);
+  const editorContentRef = useRef<string>("");
+  const lastSavedContentRef = useRef<string>("");
+  const pendingSaveRef = useRef<boolean>(false);
   
   const [modals, setModals] = useState({
     image: false,
     link: false,
+    unsavedChanges: false,
   });
   
+  const [nextNoteId, setNextNoteId] = useState<string | null>(null);
   const [textStats, setTextStats] = useState({
     wordCount: 0,
     charCount: 0,
   });
-
-  const lastChangeTimeRef = useRef<number>(0);
-  const changesCountRef = useRef<number>(0);
 
   const scrollbarConfig = useMemo(() => {
     const style = getScrollbarStyle();
@@ -71,34 +96,6 @@ const NoteEditor: React.FC = () => {
     };
   }, [getScrollbarStyle]);
 
-  const handleEditorUpdate = useCallback(({ editor }: { editor: Editor }) => {
-    if (!note) return;
-    
-    const newContent = editor.getHTML();
-    const text = editor.state.doc.textContent;
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    
-    setTextStats({
-      wordCount: words,
-      charCount: text.length
-    });
-
-    const now = Date.now();
-    changesCountRef.current += 1;
-    
-    const significantTimePassed = (now - lastChangeTimeRef.current) > 500;
-    const enoughChanges = changesCountRef.current >= 5;
-    
-    if (enoughChanges || significantTimePassed) {
-      setIsSaving(true);
-      saveNote({
-        ...note,
-        content: newContent
-      });
-      lastChangeTimeRef.current = now;
-    }
-  }, [note]);
-
   const editorConfig = useMemo(() => ({
     extensions: EDITOR_EXTENSIONS,
     editorProps: {
@@ -108,27 +105,222 @@ const NoteEditor: React.FC = () => {
           .map(([key, value]) => `${key}: ${value}`)
           .join('; ')
       },
-    },
-    onUpdate: handleEditorUpdate
-  }), [handleEditorUpdate, scrollbarConfig]);
+      handlePaste: (view: EditorView, event: ClipboardEvent) => {
+        return false;
+      }
+    }
+  }), [scrollbarConfig]);
 
   const editor = useEditor(editorConfig);
 
-  const saveNote = useDebounce((updatedNote: Note) => {
-    updateNote(updatedNote);
-    setIsSaving(false);
-    changesCountRef.current = 0;
-  }, 1500);
-
-  useEffect(() => {
-    const activeNote = getActiveNote();
-    setNote(activeNote);
+  // Immediately save content without debounce when it's important
+  const saveNoteContentImmediately = useCallback((content: string) => {
+    if (!note) return;
     
-    if (activeNote && editor && !editor.isDestroyed) {
-      editor.commands.setContent(activeNote.content);
-      changesCountRef.current = 0;
+    console.log(`IMMEDIATE SAVE for note: ${note.id}, content length: ${content.length}`);
+    pendingSaveRef.current = true;
+    
+    try {
+      updateNote({
+        ...note,
+        content,
+        updatedAt: new Date()
+      });
+      lastSavedContentRef.current = content;
+      console.log(`Immediate save completed for note ${note.id}`);
+    } catch (err) {
+      console.error("Failed to save note immediately:", err);
+    } finally {
+      pendingSaveRef.current = false;
     }
-  }, [getActiveNote, editor]);
+  }, [note, updateNote]);
+
+  // Debounced save function with error handling
+  const debouncedSave = useDebounce((updatedContent: string) => {
+    if (!note || pendingSaveRef.current) return;
+    
+    console.log(`Debounced save for note ${note.id}, content length: ${updatedContent.length}`);
+    pendingSaveRef.current = true;
+    
+    try {
+      updateNote({
+        ...note,
+        content: updatedContent,
+        updatedAt: new Date()
+      });
+      lastSavedContentRef.current = updatedContent;
+      console.log(`Debounced save completed for note ${note.id}`);
+    } catch (err) {
+      console.error("Failed in debounced save:", err);
+    } finally {
+      pendingSaveRef.current = false;
+    }
+  }, 300);
+
+  // Handle content changes in the editor
+  const handleEditorUpdate = useCallback(({ editor }: { editor: Editor }) => {
+    if (!note || !editor) return;
+    
+    const newContent = editor.getHTML();
+    editorContentRef.current = newContent;
+    
+    // Update text stats
+    const text = editor.state.doc.textContent;
+    setTextStats({
+      wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
+      charCount: text.length
+    });
+    
+    // Queue up a save operation
+    debouncedSave(newContent);
+  }, [note, debouncedSave]);
+
+  // Force save the current note content - used before switching notes
+  const forceSaveContent = useCallback(() => {
+    if (!editor || !note) return false;
+    
+    const currentContent = editor.getHTML();
+    
+    // Only save if content has actually changed
+    if (currentContent !== lastSavedContentRef.current) {
+      console.log(`Force saving note ${note.id} before switching`);
+      saveNoteContentImmediately(currentContent);
+      return true;
+    }
+    
+    return false;
+  }, [editor, note, saveNoteContentImmediately]);
+
+  // Safe version of setActiveNoteId that checks for unsaved changes first
+  const switchToNote = useCallback((newNoteId: string | null) => {
+    if (!editor || !note) {
+      setActiveNoteId(newNoteId);
+      return;
+    }
+    
+    const currentContent = editor.getHTML();
+    
+    // Check if there are unsaved changes
+    if (currentContent !== lastSavedContentRef.current) {
+      console.log("Unsaved changes detected, saving before switch");
+      saveNoteContentImmediately(currentContent);
+    }
+    
+    setActiveNoteId(newNoteId);
+  }, [editor, note, setActiveNoteId, saveNoteContentImmediately]);
+
+  // Update editor when active note changes
+  useEffect(() => {
+    // Track when activeNoteId changes to load the new note
+    const loadNewNote = async () => {
+      const currentNoteId = previousNoteIdRef.current;
+      const newActiveNote = getActiveNote();
+      
+      console.log(`Note switching from ${currentNoteId} to ${activeNoteId}`);
+      
+      // Save previous note if it exists and has changed
+      if (currentNoteId && editor && note) {
+        const currentContent = editor.getHTML();
+        if (currentContent !== lastSavedContentRef.current) {
+          console.log(`Saving note ${currentNoteId} before switching to ${activeNoteId}`);
+          saveNoteContentImmediately(currentContent);
+        }
+      }
+      
+      // Update the previous note ref for next time
+      previousNoteIdRef.current = activeNoteId;
+      
+      if (!newActiveNote) {
+        setNote(null);
+        return;
+      }
+      
+      // Set the new note
+      setNote(newActiveNote);
+      
+      if (editor && !editor.isDestroyed) {
+        // Set the editor content
+        const contentToSet = newActiveNote.content || '';
+        editor.commands.setContent(contentToSet);
+        
+        // Update our content tracking refs
+        editorContentRef.current = contentToSet;
+        lastSavedContentRef.current = contentToSet;
+        
+        // Update text stats
+        const text = editor.state.doc.textContent;
+        setTextStats({
+          wordCount: text.trim() ? text.trim().split(/\s+/).length : 0,
+          charCount: text.length
+        });
+        
+        console.log(`Loaded note ${newActiveNote.id}, content length: ${contentToSet.length}`);
+      }
+    };
+    
+    loadNewNote();
+  }, [activeNoteId, editor, getActiveNote, saveNoteContentImmediately, note]);
+
+  // Set up editor event listeners
+  useEffect(() => {
+    if (!editor) return;
+    
+    editor.on('update', handleEditorUpdate);
+    
+    return () => {
+      editor.off('update', handleEditorUpdate);
+    };
+  }, [editor, handleEditorUpdate]);
+
+  // Fetch app data directory
+  useEffect(() => {
+    GetAppDataDir().then(dir => {
+      setAppDataDir(dir);
+    }).catch(err => {
+      console.error("Failed to get app data directory:", err);
+    });
+  }, []);
+
+  // Save content when unmounting
+  useEffect(() => {
+    return () => {
+      forceSaveContent();
+    };
+  }, [forceSaveContent]);
+
+  // Handle periodic save to ensure content is saved
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (note && editor && !pendingSaveRef.current) {
+        const currentContent = editor.getHTML();
+        if (currentContent !== lastSavedContentRef.current) {
+          console.log(`Periodic save check - saving note ${note.id}`);
+          saveNoteContentImmediately(currentContent);
+        }
+      }
+    }, 2000); // Check every 2 seconds
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [note, editor, saveNoteContentImmediately]);
+
+  // Save before window unload
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (note && editor) {
+        const currentContent = editor.getHTML();
+        if (currentContent !== lastSavedContentRef.current) {
+          saveNoteContentImmediately(currentContent);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [note, editor, saveNoteContentImmediately]);
 
   const handleMedia = useCallback((url: string, type: 'image' | 'link') => {
     if (!editor) return;
@@ -142,6 +334,19 @@ const NoteEditor: React.FC = () => {
     }
   }, [editor]);
 
+  if (isLoading) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-white/70 p-8 text-center">
+        <svg className="animate-spin h-16 w-16 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <h2 className="text-xl font-bold mb-2">Loading Notes</h2>
+        <p>Fetching notes from {appDataDir || "application directory"}...</p>
+      </div>
+    );
+  }
+
   if (!note) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-white/70 p-8 text-center">
@@ -150,6 +355,7 @@ const NoteEditor: React.FC = () => {
         </svg>
         <h2 className="text-xl font-bold mb-2">No Note Selected</h2>
         <p>Select a note from the sidebar or create a new one.</p>
+        <p className="mt-4 text-sm">Notes are saved to: {appDataDir || "application directory"}</p>
       </div>
     );
   }
@@ -158,7 +364,7 @@ const NoteEditor: React.FC = () => {
     <div className="h-full flex flex-col overflow-hidden p-2">
       <div className="editor-container flex flex-col w-full h-[calc(100vh-6rem)] rounded-lg overflow-hidden border border-white/10">
         <Toolbar 
-          editor={editor} 
+          editor={editor || null} 
           onImageClick={() => setModals(prev => ({ ...prev, image: true }))}
           onLinkClick={() => setModals(prev => ({ ...prev, link: true }))}
         />
@@ -173,7 +379,8 @@ const NoteEditor: React.FC = () => {
         note={note}
         wordCount={textStats.wordCount}
         charCount={textStats.charCount}
-        isSaving={isSaving}
+        isSaving={pendingSaveRef.current || saveStatus.isSaving}
+        appDataDir={appDataDir}
       />
 
       <InputModal
@@ -193,6 +400,26 @@ const NoteEditor: React.FC = () => {
         placeholder="Enter URL"
         confirmText="Add Link"
         inputType="url"
+      />
+      <InputModal
+        isOpen={modals.unsavedChanges}
+        onClose={() => {
+          setModals(prev => ({ ...prev, unsavedChanges: false }));
+          setNextNoteId(null);
+        }}
+        onConfirm={() => {
+          setModals(prev => ({ ...prev, unsavedChanges: false }));
+          if (nextNoteId !== null) {
+            forceSaveContent();
+            setActiveNoteId(nextNoteId);
+            setNextNoteId(null);
+          }
+        }}
+        title="Unsaved Changes"
+        message="You have unsaved changes in this note. Save before switching?"
+        confirmText="Save & Switch"
+        showInput={false}
+        cancelText="Discard Changes"
       />
     </div>
   );

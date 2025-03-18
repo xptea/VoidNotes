@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  background: transparent !important;
+  border: none !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -13,6 +31,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Custom Scrollbar Styles */
@@ -133,4 +153,55 @@ ul[data-type="taskList"] li > div {
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+/* Custom Code Block Styling */
+pre {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: rgba(22, 22, 30, 0.95) !important;
+  overflow: auto;
+  margin: 1rem 0;
+}
+
+pre, pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* Force spellcheck to be disabled on code blocks */
+pre, pre code {
+  spellcheck: false !important;
+  -webkit-spellcheck: false !important;
+}
+
+/* Ensure code block content is colored properly */
+pre code:not(.hljs) {
+  color: #e2e8f0;
+}
+
+/* Ensure code blocks have proper spacing */
+.ProseMirror pre {
+  margin: 1em 0;
+}
+
+/* Ensure code elements inherit colors from highlight.js */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  background: #1e1e1e !important;
+  color: #dcdcdc;
+}
+
+/* Make sure padding is consistent */
+.tiptap pre {
+  padding: 1rem !important;
+}
+
+/* Ensure code blocks stand out in the editor */
+.ProseMirror pre {
+  background-color: rgba(22, 22, 30, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }

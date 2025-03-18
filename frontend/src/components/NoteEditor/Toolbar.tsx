@@ -1,13 +1,34 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { ToolbarButton } from './Toolbar';
-import { fontFamilyOptions } from './constants';
+import { fontFamilyOptions } from './fonts';
 
 interface ToolbarProps {
   editor: Editor | null;
   onImageClick: () => void;
   onLinkClick: () => void;
 }
+
+interface ToolbarButtonProps {
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  title: string;
+  children: React.ReactNode;
+}
+
+export const ToolbarButton: React.FC<ToolbarButtonProps> = ({ onClick, active = false, disabled = false, title, children }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`p-1.5 rounded-md transition-colors ${
+      active ? 'bg-white/30 text-white' : 'text-white/70 hover:bg-white/20 hover:text-white'
+    } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+    title={title}
+    type="button"
+  >
+    {children}
+  </button>
+);
 
 export const Toolbar: React.FC<ToolbarProps> = ({ editor, onImageClick, onLinkClick }) => {
   if (!editor) return null;

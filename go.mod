@@ -4,8 +4,6 @@ go 1.22.0
 
 toolchain go1.24.1
 
-// replace github.com/wailsapp/wails/v2 v2.10.1 => C:\Users\buddy\go\pkg\mod
-
 require github.com/wailsapp/wails/v2 v2.10.1
 
 require (

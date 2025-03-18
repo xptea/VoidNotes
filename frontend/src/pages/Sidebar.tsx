@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, CSSProperties} from 'react';
 import { useWindow } from '../contexts/WindowContext';
-import { useNotes, Note } from '../contexts/NotesContext';
+import { useNotes } from '../contexts/NotesContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { CustomCSSProperties } from '../types/styles';
 import sidebarLeftIcon from '../assets/sidebar-left.svg';
 import sidebarRightIcon from '../assets/sidebar-right.svg';
 import InputModal from '../components/modals/MainModal';
+
+
+export interface CustomCSSProperties extends CSSProperties {
+  '--scrollbar-thumb-color'?: string;
+  '--scrollbar-track-color'?: string;
+}
 
 interface SidebarProps {
   className?: string;
@@ -114,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         style={{ 
           "--wails-draggable": "no-drag", 
           borderTopLeftRadius: isMac ? '10px' : '0',
-          borderBottomLeftRadius: isMac ? '10px' : '0',
+          borderBottomLeftRadius: '10px',
           paddingTop: isMac ? '28px' : '0',
           ...getSidebarStyle(),
         } as React.CSSProperties}
@@ -384,7 +389,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         {!collapsed ? (
           <div className="border-t border-white/10 flex flex-col items-center justify-center">
             <div className="w-full px-4 pt-4 pb-2">
-              {/* Added a thin line above the button */}
               <button
                 onClick={addNote}
                 className="w-full px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors flex items-center justify-center gap-2"

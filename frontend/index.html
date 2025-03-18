@@ -1,12 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS + Tailwind</title>
-  </head>
-  <body>
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>VoidNotes</title>
+    <style>
+        * {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        html, body {
+            background: transparent !important;
+            margin: 0;
+            padding: 0;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        #root {
+            background: transparent !important;
+            height: 100vh;
+            border: none !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+<body style="background: transparent !important; border: none !important; box-shadow: none !important;">
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <script src="./src/main.tsx" type="module"></script>
+</body>
 </html>

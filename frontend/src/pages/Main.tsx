@@ -16,14 +16,14 @@ const MainContent: React.FC<MainContentProps> = ({ className }) => {
             style={{
                 ...getMainAreaStyle(),
                 borderTopRightRadius: isMac ? '10px' : '0',
-                borderBottomRightRadius: isMac ? '10px' : '0',
-                "--wails-draggable": "no-drag",
-            } as React.CSSProperties}
+                borderBottomRightRadius: '10px',
+            }}
         >
             <div 
                 className="h-2"
                 style={{
                     "--wails-draggable": "drag",
+                    backgroundColor: 'rgba(0, 0, 0, 0)',
                 } as React.CSSProperties}
             >
             </div>
@@ -31,7 +31,7 @@ const MainContent: React.FC<MainContentProps> = ({ className }) => {
             <div className="flex-1 overflow-hidden"
                 style={{
                     "--wails-draggable": "no-drag",
-                } as React.CSSProperties}>
+                } as React.CSSProperties & { [key: string]: string }}>
                 <NoteEditor />
             </div>
         </div>

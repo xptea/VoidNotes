@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSettings } from '../contexts/SettingsContext.js';
+import UpdateNotification from './update/UpdateNotification.js';
 
 interface ColorOption {
   name: string;
@@ -25,7 +26,10 @@ const Settings: React.FC = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white/10 backdrop-blur-md rounded-lg w-full max-w-md p-6 text-white shadow-lg border border-white/20">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Settings</h2>
+          <div>
+            <h2 className="text-xl font-bold">Settings</h2>
+            <UpdateNotification showVersionOnly={true} className="text-xs text-white/60 mt-1" />
+          </div>
           <button 
             onClick={toggleSettings}
             className="p-1 hover:bg-white/20 rounded-full"

@@ -5,7 +5,7 @@ import { useSettings } from '../contexts/SettingsContext.js';
 import sidebarLeftIcon from '../assets/sidebar-left.svg';
 import sidebarRightIcon from '../assets/sidebar-right.svg';
 import InputModal from '../components/modals/MainModal.js';
-
+import UpdateNotification from '../components/update/UpdateNotification.js';
 
 export interface CustomCSSProperties extends CSSProperties {
   '--scrollbar-thumb-color'?: string;
@@ -398,16 +398,19 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                 </svg>
                 <span>New Note</span>
               </button>
+              
+
             </div>
             
             <div className="p-4 text-center w-full">
               <h3 className="text-xl font-bold tracking-wider">VoidWorks</h3>
-              <span className="text-xs text-white/60">© 2025 All rights reserved</span>
+              <UpdateNotification className="border-t border-white/10 " />
             </div>
           </div>
         ) : (
-          <div className="py-4 border-t border-white/10 flex items-center justify-center">
-            <div className="vertical-text text-sm font-bold tracking-wider text-white/80">
+          <div className="py-4 border-t border-white/10 flex flex-col items-center justify-center">
+            
+            <div className="vertical-text text-sm font-bold tracking-wider text-white/80 mb-2">
               VoidWorks
             </div>
           </div>

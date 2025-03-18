@@ -1,12 +1,30 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import App from './App.js'
 import './index.css'
+import { NotesProvider } from './contexts/NotesContext.js'
+import { SettingsProvider } from './contexts/SettingsContext.js'
+import { WindowProvider } from './contexts/WindowContext.js'
+import { useAutoUpdate } from './components/update/AutoUpdate.js'
 
-import 'highlight.js/styles/vs2015.css'
+const initAutoUpdate = () => {
+  const { checkForUpdates } = useAutoUpdate();
+  checkForUpdates();
+  setInterval(checkForUpdates, 12 * 60 * 60 * 1000); 
+};
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+const container = document.getElementById('root') as HTMLElement;
+const root = createRoot(container);
+root.render(
   <React.StrictMode>
-    <App />
+    <WindowProvider>
+      <SettingsProvider>
+        <NotesProvider>
+          <App />
+        </NotesProvider>
+      </SettingsProvider>
+    </WindowProvider>
   </React.StrictMode>
-)
+);
+
+initAutoUpdate();

@@ -72,6 +72,7 @@ VoidNotes offers extensive UI customization options:
 ## Roadmap
 
 ### 2025
+- [x] Auto Update
 - [ ] Image embedding support
 - [ ] Cloud sync support
 - [ ] Enhanced text styling options

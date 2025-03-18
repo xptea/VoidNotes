@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Sleep for a moment to ensure the package installation is complete
+sleep 1
+
+# Define paths
+APP_NAME="VoidNotes"
+TEMP_APP_PATH="/private/tmp/VoidNotes.app"
+FINAL_APP_PATH="/Applications/VoidNotes.app"
+
+# Remove existing app if it exists
+rm -rf "$FINAL_APP_PATH"
+
+# Move the app to Applications folder
+mv "$TEMP_APP_PATH" "$FINAL_APP_PATH"
+
+# Fix permissions and signing
+chown -R $USER:staff "$FINAL_APP_PATH"
+chmod -R 755 "$FINAL_APP_PATH"
+xattr -cr "$FINAL_APP_PATH"
+codesign --force --deep --sign - "$FINAL_APP_PATH"
+
+# Open the app
+open "$FINAL_APP_PATH"
+
+exit 0

@@ -1,81 +1,61 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT="$SCRIPT_DIR/.."
-
 APP_NAME="VoidNotes"
 APP_PATH="$PROJECT_ROOT/build/bin/voidnotes.app"
-DMG_PATH="$PROJECT_ROOT/build/bin/${APP_NAME}.dmg"
-TEMP_DMG_PATH="$PROJECT_ROOT/build/bin/${APP_NAME}_temp.dmg"
-VOLUME_NAME="${APP_NAME}"
-BACKGROUND_FILE="$SCRIPT_DIR/dmg-background.svg"
-MOUNT_POINT="/Volumes/$VOLUME_NAME"
+PKG_PATH="$PROJECT_ROOT/build/bin/${APP_NAME}_installer.pkg"
 
-if ! command -v rsvg-convert &> /dev/null; then
-    echo "Installing librsvg for background image conversion..."
-    brew install librsvg
-fi
+# Post-install script creation
+POSTINSTALL_SCRIPT="$SCRIPT_DIR/postinstall"
+cat << EOF > "$POSTINSTALL_SCRIPT"
+#!/bin/bash
 
-rsvg-convert -h 400 "$BACKGROUND_FILE" > "$SCRIPT_DIR/dmg-background.png"
+# Sleep for a moment to ensure the package installation is complete
+sleep 1
 
-if [ ! -d "$APP_PATH" ]; then
-    echo "Error: $APP_PATH does not exist!"
-    exit 1
-fi
+# Define paths
+APP_NAME="VoidNotes"
+TEMP_APP_PATH="/private/tmp/$APP_NAME.app"
+FINAL_APP_PATH="/Applications/$APP_NAME.app"
 
-rm -f "$DMG_PATH"
-rm -f "$TEMP_DMG_PATH"
+# Remove existing app if it exists
+rm -rf "\$FINAL_APP_PATH"
 
-echo "Creating temporary DMG..."
-hdiutil create -volname "$VOLUME_NAME" -srcfolder "$APP_PATH" -ov -format UDRW "$TEMP_DMG_PATH"
+# Move the app to Applications folder
+mv "\$TEMP_APP_PATH" "\$FINAL_APP_PATH"
 
-echo "Mounting temporary DMG..."
-hdiutil attach "$TEMP_DMG_PATH" -mountpoint "$MOUNT_POINT"
+# Fix permissions and signing
+chown -R \$USER:staff "\$FINAL_APP_PATH"
+chmod -R 755 "\$FINAL_APP_PATH"
+xattr -cr "\$FINAL_APP_PATH"
+codesign --force --deep --sign - "\$FINAL_APP_PATH"
 
-echo "Creating Applications symlink..."
-ln -s /Applications "$MOUNT_POINT/Applications"
+# Open the app
+open "\$FINAL_APP_PATH"
 
-mkdir -p "$MOUNT_POINT/.background"
-cp "$SCRIPT_DIR/dmg-background.png" "$MOUNT_POINT/.background/background.png"
+exit 0
+EOF
 
-echo "Setting up DMG appearance..."
-osascript << EOT
-tell application "Finder"
-    tell disk "$VOLUME_NAME"
-        open
-        set current view of container window to icon view
-        set toolbar visible of container window to false
-        set statusbar visible of container window to false
-        set bounds of container window to {400, 100, 1000, 500}
-        set theViewOptions to the icon view options of container window
-        set arrangement of theViewOptions to not arranged
-        set icon size of theViewOptions to 128
-        set background picture of theViewOptions to file ".background:background.png"
-        set position of item "$APP_NAME.app" of container window to {160, 170}
-        set position of item "Applications" of container window to {440, 170}
-        update without registering applications
-        delay 2
-        close
-    end tell
-end tell
-EOT
+chmod +x "$POSTINSTALL_SCRIPT"
 
-echo "Unmounting temporary DMG..."
-hdiutil detach "$MOUNT_POINT"
+# Build the .pkg
+mkdir -p "$SCRIPT_DIR/scripts"
+cp "$POSTINSTALL_SCRIPT" "$SCRIPT_DIR/scripts/postinstall"
 
-echo "Creating final compressed DMG..."
-hdiutil convert "$TEMP_DMG_PATH" -format UDZO -imagekey zlib-level=9 -o "$DMG_PATH"
+pkgbuild --root "$APP_PATH" \
+         --identifier com.void.voidnotes \
+         --version 1.0 \
+         --install-location "/private/tmp/$APP_NAME.app" \
+         --scripts "$SCRIPT_DIR/scripts" \
+         "$PKG_PATH"
 
-rm -f "$TEMP_DMG_PATH"
-rm -f "$SCRIPT_DIR/dmg-background.png"
-
-if [ -f "$DMG_PATH" ]; then
-    echo "DMG created successfully at $DMG_PATH"
-    echo "Your professional installer is ready!"
+if [ -f "$PKG_PATH" ]; then
+    echo "Installer package created successfully at $PKG_PATH"
+    echo "Users can now install by running the .pkg file."
 else
-    echo "Failed to create DMG"
+    echo "Failed to create installer package"
     exit 1
 fi
 
-
-# Run this command to build the app and create the DMG after you wail build     
-# cd /Users/void/docs/GitHub/VoidNotes && ./scripts/create-dmg.sh
+# Run this command to build the app and create the PKG after you wail build
+# cd /Users/void/docs/GitHub/VoidNotes && ./scripts/create-pkg.sh

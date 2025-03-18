@@ -19,16 +19,26 @@ A modern, lightweight, and customizable note-taking application built with Go an
 ## Installation
 
 1. Go to the [releases page](https://github.com/xptea/VoidNotes/releases)
-2. Download the latest version for your platform
-3. Run the installer
-   
-   **Linux suport coming soon**
-   **Note for Mac users:** Since this is an open source project and the code isn't signed:
-   - Move the .app file to your preferred folder
-   - Open Terminal and run: `sudo xattr -cr VoidNotes_MacOS_ARM.app`
-   - Alternatively, you can rebuild and compile the project yourself from source
+
+### Windows
+- Download and run the `voidnotes-amd64-installer.exe`, and then open it.
+
+### Mac
+- Download and open the `VoidNotes_installer.pkg`.  
+  For Mac, since the installer is not signed, when you first open the file, you will have to click "Done".
   
-5. Start writing!
+  ![image](https://github.com/user-attachments/assets/143294cb-ca55-4ca3-9116-612cdbf1690e)
+
+  After that, go to **Settings**, then **Privacy & Security**, and scroll all the way to the bottom. You'll find a pop-up like this:
+
+  ![image](https://github.com/user-attachments/assets/354bd61a-0f19-4cd0-b77d-5306603b2c67)
+
+  Click **Open Anyway** 
+
+![image](https://github.com/user-attachments/assets/ff8c589b-bfe1-4792-8870-4c4e2af1dfed)
+ Lastly, click **Open Anyway** to continue to the installer
+- Alternatively, you can rebuild and compile the project yourself from source
+  
 
 ## Usage
 

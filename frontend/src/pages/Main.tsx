@@ -1,6 +1,6 @@
-import { useWindow } from '../contexts/WindowContext';
-import { useSettings } from '../contexts/SettingsContext';
-import NoteEditor from '../components/NoteEditor';
+import { useWindow } from '../contexts/WindowContext.js';
+import { useSettings } from '../contexts/SettingsContext.js';
+import NoteEditor from '../components/NoteEditor.js';
 
 interface MainContentProps {
     className?: string;

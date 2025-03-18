@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { LoadNotes, SaveNote, DeleteNote } from '../../wailsjs/go/main/App';
+import { LoadNotes, SaveNote, DeleteNote } from '../../wailsjs/go/main/App.js';
 
 export interface Note {
   id: string;
@@ -69,20 +69,17 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     lastSavedId: null as string | null,
     error: null as string | null
   });
-  
-  // Queue for saving notes to prevent race conditions
+
   const saveQueue = useRef<Map<string, Note>>(new Map());
   const isSaving = useRef(false);
   const saveRetryTimerRef = useRef<number | null>(null);
 
-  // Process the save queue
   const processSaveQueue = async () => {
     if (isSaving.current || saveQueue.current.size === 0) return;
     
     isSaving.current = true;
     
     try {
-      // Get the first note in the queue
       const [id, noteToSave] = Array.from(saveQueue.current.entries())[0];
       
       setSaveStatus({
@@ -93,23 +90,19 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       console.log(`Processing save for note ${id} - Title: ${noteToSave.title}, Content length: ${noteToSave.content.length}`);
       
-      // Prepare note for saving (convert dates to ISO strings)
       const preparedNote = {
         ...noteToSave,
         createdAt: noteToSave.createdAt.toISOString(),
         updatedAt: noteToSave.updatedAt.toISOString()
       };
       
-      // For debugging, log the first 100 chars of content
       const contentPreview = noteToSave.content.length > 100 
         ? `${noteToSave.content.substring(0, 100)}...` 
         : noteToSave.content;
       console.log(`Note ${id} content preview: ${contentPreview}`);
       
-      // Save note to filesystem
       await SaveNote(JSON.stringify(preparedNote));
       
-      // Double-check that saving worked by loading notes back
       try {
         const notesData = await LoadNotes();
         const parsedNotes = JSON.parse(notesData);
@@ -128,11 +121,8 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.log(`Verified note ${id} was saved correctly`);
       } catch (verifyErr) {
         console.error('Verification error:', verifyErr);
-        // If verification fails but no error was thrown from SaveNote, we still remove from queue
-        // as not to get stuck in an endless loop
       }
       
-      // Remove from queue after successful save
       saveQueue.current.delete(id);
       
       console.log(`Note ${id} saved successfully!`);
@@ -145,7 +135,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (error) {
       console.error('Failed to save note:', error);
       
-      // Get the failed note
       const failedEntry = Array.from(saveQueue.current.entries())[0];
       if (failedEntry) {
         const [id] = failedEntry;
@@ -156,10 +145,8 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           error: `Failed to save note ${id}: ${String(error)}`
         });
         
-        // Keep the note in the queue for retry
         console.log(`Will retry saving note ${id} in 2 seconds...`);
         
-        // Set a timer to retry
         if (saveRetryTimerRef.current) {
           window.clearTimeout(saveRetryTimerRef.current);
         }
@@ -170,26 +157,22 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }, 2000);
       }
     } finally {
-      // Only clear the saving flag if we're not going to retry
       if (!saveRetryTimerRef.current) {
         isSaving.current = false;
       }
       
-      // If there are more notes to save, continue processing
       if (saveQueue.current.size > 0 && !saveRetryTimerRef.current) {
         setTimeout(processSaveQueue, 100);
       }
     }
   };
 
-  // Add a note to the save queue
   const queueSave = (note: Note): void => {
     console.log(`Queuing save for note ${note.id} - Title: ${note.title}`);
     saveQueue.current.set(note.id, note);
     processSaveQueue();
   };
 
-  // Load notes from the filesystem when the component mounts
   useEffect(() => {
     const loadNotesFromFilesystem = async () => {
       try {
@@ -233,7 +216,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           console.log("No notes data returned");
         }
         
-        // If we get here, either no notes were found or parsing failed
         console.log("Creating initial welcome note");
         setNotes(initialNotes);
         
@@ -259,7 +241,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadNotesFromFilesystem();
   }, []);
 
-  // Save pending notes before window unload
   useEffect(() => {
     const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
       if (saveQueue.current.size > 0) {
@@ -267,7 +248,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         e.preventDefault();
         e.returnValue = '';
         
-        // Force synchronous saves for all pending notes
         for (const [id, note] of saveQueue.current.entries()) {
           try {
             const preparedNote = {
@@ -291,7 +271,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // Set active note ID if none is selected and notes are available
   useEffect(() => {
     if (notes.length > 0 && !activeNoteId) {
       console.log(`No active note, selecting first note: ${notes[0].id}`);
@@ -299,7 +278,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [notes, activeNoteId]);
 
-  // Filter notes based on search query
   const filteredNotes = notes.filter(note => {
     if (!searchQuery.trim()) return true;
     
@@ -311,7 +289,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return titleMatch || contentMatch || tagsMatch;
   });
 
-  // Add a new note
   const addNote = async () => {
     try {
       const newNote: Note = {
@@ -324,23 +301,19 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       console.log(`Creating new note: ${newNote.id}`);
       
-      // Update state immediately
       setNotes([newNote, ...notes]);
       setActiveNoteId(newNote.id);
       
-      // Queue save operation
       queueSave(newNote);
     } catch (error) {
       console.error('Failed to add note', error);
     }
   };
 
-  // Update an existing note
   const updateNote = async (updatedNote: Note): Promise<boolean> => {
     try {
       console.log(`Updating note: ${updatedNote.id} - ${updatedNote.title}`);
       
-      // Find original note
       const originalNote = notes.find(note => note.id === updatedNote.id);
       if (!originalNote) {
         console.error(`Cannot update note ${updatedNote.id}: Note not found`);
@@ -351,16 +324,13 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...originalNote,
         ...updatedNote,
         updatedAt: new Date(),
-        // Preserve original creation date
         createdAt: originalNote.createdAt
       };
       
-      // Update state immediately for responsive UI
       setNotes(notes.map(note => 
         note.id === noteToUpdate.id ? noteToUpdate : note
       ));
       
-      // Queue save operation
       queueSave(noteToUpdate);
       return true;
     } catch (error) {
@@ -369,25 +339,20 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Delete a note
   const deleteNote = async (id: string) => {
     try {
       console.log(`Deleting note: ${id}`);
       
-      // Delete note from filesystem
       await DeleteNote(id);
       console.log(`Note ${id} deleted from filesystem`);
       
-      // Remove from state
       setNotes(notes.filter(note => note.id !== id));
       
-      // Remove from save queue if present
       if (saveQueue.current.has(id)) {
         console.log(`Removing note ${id} from save queue`);
         saveQueue.current.delete(id);
       }
       
-      // Update active note if necessary
       if (activeNoteId === id) {
         const nextNote = notes.length > 1 ? notes.find(note => note.id !== id)?.id || null : null;
         console.log(`Deleted active note, selecting next note: ${nextNote}`);
@@ -398,7 +363,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Get the currently active note
   const getActiveNote = () => {
     return notes.find(note => note.id === activeNoteId) || null;
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext.js';
 
 interface ColorOption {
   name: string;

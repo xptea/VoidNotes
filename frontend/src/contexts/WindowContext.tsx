@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Environment } from '../../wailsjs/runtime/runtime';
+import { Environment } from '../../wailsjs/runtime/runtime.js';
 
 interface WindowContextType {
   isMac: boolean;

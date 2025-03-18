@@ -1,6 +1,6 @@
-import { WindowMinimise, WindowToggleMaximise, Quit, EventsOn, EventsOff } from '../../wailsjs/runtime/runtime';
+import { WindowMinimise, WindowToggleMaximise, Quit, EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
 import { useEffect, useState } from 'react';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../contexts/SettingsContext.js';
 
 interface HeaderProps {
   title?: string;

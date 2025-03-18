@@ -1,9 +1,9 @@
-import Sidebar from '../pages/Sidebar';
-import MainContent from '../pages/Main';
-import Header from './Header';
-import Settings from './Settings';
+import Sidebar from '../pages/Sidebar.js';
+import MainContent from '../pages/Main.js';
+import Header from './Header.js';
+import Settings from './Settings.js';
 import { useEffect, useState } from 'react';
-import { Environment } from '../../wailsjs/runtime/runtime';
+import { Environment } from '../../wailsjs/runtime/runtime.js';
 
 interface LayoutProps {
   children?: React.ReactNode;

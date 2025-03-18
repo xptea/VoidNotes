@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { fontFamilyOptions } from './fonts';
+import { fontFamilyOptions } from './fonts.js';
 
 interface ToolbarProps {
   editor: Editor | null;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useNotes, Note } from '../contexts/NotesContext';
-import { useSettings } from '../contexts/SettingsContext';
+import { useNotes, Note } from '../contexts/NotesContext.js';
+import { useSettings } from '../contexts/SettingsContext.js';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import { EditorView } from 'prosemirror-view';
 
@@ -12,13 +12,13 @@ import {
   Color, Highlight, FontFamily, Superscript, Subscript, Table, 
   TableRow, TableCell, TableHeader, TaskList, TaskItem, 
   Blockquote, Dropcursor, Image, HorizontalRule, DisableSpellcheckInCode 
-} from './utils/tiptapExtensions';
+} from './utils/tiptapExtensions.js';
 
-import InputModal from './modals/MainModal';
-import { StatusBar }from './NoteEditor/StatusBar';
-import {useDebounce} from './NoteEditor/hooks/useDebounce';
-import { Toolbar } from './NoteEditor/Toolbar';
-import { GetAppDataDir } from '../../wailsjs/go/main/App';
+import InputModal from './modals/MainModal.js';
+import { StatusBar }from './NoteEditor/StatusBar.js';
+import {useDebounce} from './NoteEditor/hooks/useDebounce.js';
+import { Toolbar } from './NoteEditor/Toolbar.js';
+import { GetAppDataDir } from '../../wailsjs/go/main/App.js';
 
 const EDITOR_EXTENSIONS = [
   StarterKit.configure({ 
@@ -66,6 +66,8 @@ const NoteEditor: React.FC = () => {
   const editorContentRef = useRef<string>("");
   const lastSavedContentRef = useRef<string>("");
   const pendingSaveRef = useRef<boolean>(false);
+  const isTypingRef = useRef<boolean>(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [modals, setModals] = useState({
     image: false,
@@ -113,6 +115,18 @@ const NoteEditor: React.FC = () => {
 
   const editor = useEditor(editorConfig);
 
+  const markAsTyping = useCallback(() => {
+    isTypingRef.current = true;
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      isTypingRef.current = false;
+    }, 500);
+  }, []);
+
   const saveNoteContentImmediately = useCallback((content: string) => {
     if (!note) return;
     
@@ -137,9 +151,7 @@ const NoteEditor: React.FC = () => {
   const debouncedSave = useDebounce((updatedContent: string) => {
     if (!note || pendingSaveRef.current) return;
     
-    if (updatedContent === lastSavedContentRef.current) return;
-    
-    console.log(`Debounced save for note ${note.id}`);
+    console.log(`Debounced save for note ${note.id}, content length: ${updatedContent.length}`);
     pendingSaveRef.current = true;
     
     try {
@@ -149,6 +161,7 @@ const NoteEditor: React.FC = () => {
         updatedAt: new Date()
       });
       lastSavedContentRef.current = updatedContent;
+      console.log(`Debounced save completed for note ${note.id}`);
     } catch (err) {
       console.error("Failed in debounced save:", err);
     } finally {
@@ -156,15 +169,12 @@ const NoteEditor: React.FC = () => {
     }
   }, 1000);
 
-  const handleEditorUpdate = useCallback(({ editor, transaction }: { editor: Editor, transaction: any }) => {
-    if (!note || !editor || editor.isDestroyed) return;
+  const handleEditorUpdate = useCallback(({ editor }: { editor: Editor }) => {
+    if (!note || !editor) return;
     
-    if (!transaction.docChanged) return;
+    markAsTyping();
     
     const newContent = editor.getHTML();
-    
-    if (newContent === editorContentRef.current) return;
-    
     editorContentRef.current = newContent;
     
     const text = editor.state.doc.textContent;
@@ -174,10 +184,10 @@ const NoteEditor: React.FC = () => {
     });
     
     debouncedSave(newContent);
-  }, [note, debouncedSave]);
+  }, [note, debouncedSave, markAsTyping]);
 
   const forceSaveContent = useCallback(() => {
-    if (!editor || !note) return false;
+    if (!editor || !note || isTypingRef.current) return false;
     
     const currentContent = editor.getHTML();
     
@@ -190,9 +200,16 @@ const NoteEditor: React.FC = () => {
     return false;
   }, [editor, note, saveNoteContentImmediately]);
 
-  useCallback((newNoteId: string | null) => {
+  const switchToNote = useCallback((newNoteId: string | null) => {
     if (!editor || !note) {
       setActiveNoteId(newNoteId);
+      return;
+    }
+    
+    if (isTypingRef.current) {
+      console.log("User is currently typing, delaying note switch");
+      setNextNoteId(newNoteId);
+      setModals(prev => ({ ...prev, unsavedChanges: true }));
       return;
     }
     
@@ -210,6 +227,13 @@ const NoteEditor: React.FC = () => {
     const loadNewNote = async () => {
       const currentNoteId = previousNoteIdRef.current;
       const newActiveNote = getActiveNote();
+      
+      if (isTypingRef.current && currentNoteId && currentNoteId !== activeNoteId) {
+        console.log(`User is typing, delaying switch from ${currentNoteId} to ${activeNoteId}`);
+        setNextNoteId(activeNoteId);
+        setModals(prev => ({ ...prev, unsavedChanges: true }));
+        return;
+      }
       
       console.log(`Note switching from ${currentNoteId} to ${activeNoteId}`);
       
@@ -230,13 +254,14 @@ const NoteEditor: React.FC = () => {
       
       setNote(newActiveNote);
       
-      if (editor && !editor.isDestroyed && (!note || note.id !== newActiveNote.id)) {
+      if (editor && !editor.isDestroyed) {
         const contentToSet = newActiveNote.content || '';
-        const { from, to } = editor.state.selection;
-        editor.commands.setContent(contentToSet);
         
-        editorContentRef.current = contentToSet;
-        lastSavedContentRef.current = contentToSet;
+        if (editorContentRef.current !== contentToSet) {
+          editor.commands.setContent(contentToSet, false);
+          editorContentRef.current = contentToSet;
+          lastSavedContentRef.current = contentToSet;
+        }
         
         const text = editor.state.doc.textContent;
         setTextStats({
@@ -254,23 +279,20 @@ const NoteEditor: React.FC = () => {
   useEffect(() => {
     if (!editor) return;
     
-    const handleTransaction = () => {
-      if (pendingSaveRef.current) return;
-      
-      const newContent = editor.getHTML();
-      if (newContent !== editorContentRef.current) {
-        editorContentRef.current = newContent;
-      }
+    const handleKeyDown = () => {
+      markAsTyping();
     };
     
-    editor.on('transaction', handleTransaction);
     editor.on('update', handleEditorUpdate);
     
+    const editorDOM = editor.view.dom;
+    editorDOM.addEventListener('keydown', handleKeyDown);
+    
     return () => {
-      editor.off('transaction', handleTransaction);
       editor.off('update', handleEditorUpdate);
+      editorDOM.removeEventListener('keydown', handleKeyDown);
     };
-  }, [editor, handleEditorUpdate]);
+  }, [editor, handleEditorUpdate, markAsTyping]);
 
   useEffect(() => {
     GetAppDataDir().then(dir => {
@@ -282,20 +304,22 @@ const NoteEditor: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      forceSaveContent();
+      if (!isTypingRef.current) {
+        forceSaveContent();
+      }
     };
   }, [forceSaveContent]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (note && editor && !pendingSaveRef.current) {
+      if (note && editor && !pendingSaveRef.current && !isTypingRef.current) {
         const currentContent = editor.getHTML();
         if (currentContent !== lastSavedContentRef.current) {
           console.log(`Periodic save check - saving note ${note.id}`);
           saveNoteContentImmediately(currentContent);
         }
       }
-    }, 2000);
+    }, 3000);
 
     return () => {
       clearInterval(intervalId);
@@ -358,7 +382,7 @@ const NoteEditor: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
-      <div className="editor-container flex flex-col w-full h-[calc(100vh-4rem)] rounded-lg overflow-hidden border border-white/10">
+      <div className="editor-container flex flex-col w-full h-[calc(100vh-6rem)] rounded-lg overflow-hidden border border-white/10">
         <Toolbar 
           editor={editor || null} 
           onImageClick={() => setModals(prev => ({ ...prev, image: true }))}
@@ -371,15 +395,13 @@ const NoteEditor: React.FC = () => {
         </div>
       </div>
       
-      <div className="mt-1">
-        <StatusBar
-          note={note}
-          wordCount={textStats.wordCount}
-          charCount={textStats.charCount}
-          isSaving={pendingSaveRef.current || saveStatus.isSaving}
-          appDataDir={appDataDir}
-        />
-      </div>
+      <StatusBar
+        note={note}
+        wordCount={textStats.wordCount}
+        charCount={textStats.charCount}
+        isSaving={pendingSaveRef.current || saveStatus.isSaving}
+        appDataDir={appDataDir}
+      />
 
       <InputModal
         isOpen={modals.image}

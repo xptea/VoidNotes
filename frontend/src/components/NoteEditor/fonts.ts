@@ -1,4 +1,4 @@
-import { FontOption } from './types';
+import { FontOption } from './types.js';
 
 export const fontFamilyOptions: FontOption[] = [
   { label: 'Default', value: 'Inter' },

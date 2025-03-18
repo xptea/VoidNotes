@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Note } from '../../contexts/NotesContext';
+import { Note } from '../../contexts/NotesContext.js';
 
 interface StatusBarProps {
   note: Note;

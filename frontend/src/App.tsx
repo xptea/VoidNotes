@@ -1,8 +1,8 @@
 import './App.css';
-import Layout from './components/Layout';
-import { WindowProvider } from './contexts/WindowContext';
-import { NotesProvider } from './contexts/NotesContext';
-import { SettingsProvider } from './contexts/SettingsContext';
+import Layout from './components/Layout.js';
+import { WindowProvider } from './contexts/WindowContext.js';
+import { NotesProvider } from './contexts/NotesContext.js';
+import { SettingsProvider } from './contexts/SettingsContext.js';
 
 function App() {
   return (

@@ -1,10 +1,10 @@
 import { useState, useEffect, CSSProperties} from 'react';
-import { useWindow } from '../contexts/WindowContext';
-import { useNotes } from '../contexts/NotesContext';
-import { useSettings } from '../contexts/SettingsContext';
+import { useWindow } from '../contexts/WindowContext.js';
+import { useNotes } from '../contexts/NotesContext.js';
+import { useSettings } from '../contexts/SettingsContext.js';
 import sidebarLeftIcon from '../assets/sidebar-left.svg';
 import sidebarRightIcon from '../assets/sidebar-right.svg';
-import InputModal from '../components/modals/MainModal';
+import InputModal from '../components/modals/MainModal.js';
 
 
 export interface CustomCSSProperties extends CSSProperties {

@@ -77,12 +77,11 @@ func main() {
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
-				Title:   "testing-ui-go",
-				Message: "",
+				Title:   "VoidNotes",
+				Message: "A simple note taking app",
 				Icon:    icon,
 			},
 		},
-
 	})
 
 	if err != nil {

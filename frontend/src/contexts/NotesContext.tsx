@@ -294,7 +294,7 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const newNote: Note = {
         id: Date.now().toString(),
         title: 'Untitled Note',
-        content: '<p>Start writing your note here...</p>',
+        content: '',
         createdAt: new Date(),
         updatedAt: new Date()
       };

@@ -58,7 +58,7 @@ const DisableSpellcheckInCode = Extension.create({
         attributes: {
           spellcheck: {
             default: 'false',
-            parseHTML: element => element.getAttribute('spellcheck') || 'false',
+            parseHTML: (element: { getAttribute: (arg0: string) => any; }) => element.getAttribute('spellcheck') || 'false',
             renderHTML: () => {
               return {
                 spellcheck: 'false',

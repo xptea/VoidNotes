@@ -172,7 +172,6 @@ pre, pre code {
 
 /* Force spellcheck to be disabled on code blocks */
 pre, pre code {
-  spellcheck: false !important;
   -webkit-spellcheck: false !important;
 }
 

@@ -3,6 +3,7 @@ import { useNotes, Note } from '../contexts/NotesContext.js';
 import { useSettings } from '../contexts/SettingsContext.js';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import { EditorView } from 'prosemirror-view';
+import { Transaction } from '@tiptap/pm/state';
 
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -113,7 +114,7 @@ const NoteEditor: React.FC = () => {
     }
   }), [scrollbarConfig]);
 
-  const editor = useEditor(editorConfig);
+  const editor = useEditor(editorConfig as any);
 
   const markAsTyping = useCallback(() => {
     isTypingRef.current = true;
@@ -169,7 +170,7 @@ const NoteEditor: React.FC = () => {
     }
   }, 1000);
 
-  const handleEditorUpdate = useCallback(({ editor }: { editor: Editor }) => {
+  const handleEditorUpdate = useCallback(({ editor, transaction }: { editor: Editor; transaction: Transaction }) => {
     if (!note || !editor) return;
     
     markAsTyping();
@@ -283,13 +284,17 @@ const NoteEditor: React.FC = () => {
       markAsTyping();
     };
     
-    editor.on('update', handleEditorUpdate);
+    const updateHandler = (props: any) => {
+      handleEditorUpdate(props);
+    };
+    
+    editor.on('update', updateHandler);
     
     const editorDOM = editor.view.dom;
     editorDOM.addEventListener('keydown', handleKeyDown);
     
     return () => {
-      editor.off('update', handleEditorUpdate);
+      editor.off('update', updateHandler);
       editorDOM.removeEventListener('keydown', handleKeyDown);
     };
   }, [editor, handleEditorUpdate, markAsTyping]);

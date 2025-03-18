@@ -56,3 +56,4 @@ yarn-error.log*
 *.sln
 *.sw?
 frontend/package.json.md5
+frontend/package-lock.json

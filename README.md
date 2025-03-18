@@ -2,7 +2,7 @@
 
 A modern, lightweight, and customizable note-taking application built with Go and React. VoidNotes combines elegant design with powerful features to help you organize your thoughts efficiently.
 
-![VoidNotes Screenshot](https://github.com/user-attachments/assets/184e433a-78aa-4460-a627-8e27f7ea9f9d)
+![image](https://github.com/user-attachments/assets/509d40c9-e06b-486b-94fa-64c60b62e65c)
 
 ## Features
 
@@ -66,7 +66,8 @@ VoidNotes offers extensive UI customization options:
 - Custom scrollbars
 - Light/Dark theme support
 
-![Customization Options](https://github.com/user-attachments/assets/957eda8c-1efa-4ab7-95d7-fb05647736a9)
+![image](https://github.com/user-attachments/assets/ace0e33c-99fc-444b-b836-8dece14afb55)
+![image](https://github.com/user-attachments/assets/0e1a6066-e1f4-43c4-b26e-600558c9d8bc)
 
 ## Roadmap
 

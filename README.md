@@ -22,12 +22,13 @@ A modern, lightweight, and customizable note-taking application built with Go an
 2. Download the latest version for your platform
 3. Run the installer
    
+   **Linux suport coming soon**
    **Note for Mac users:** Since this is an open source project and the code isn't signed:
    - Move the .app file to your preferred folder
    - Open Terminal and run: `sudo xattr -cr VoidNotes_MacOS_ARM.app`
    - Alternatively, you can rebuild and compile the project yourself from source
-
-4. Start writing!
+  
+5. Start writing!
 
 ## Usage
 
@@ -82,7 +83,6 @@ We welcome contributions! If you have suggestions or want to contribute to the c
 If you encounter any issues or have questions:
 
 - Open an issue on GitHub
-- Join our community Discord (coming soon)
 - Email support: void@terradream.games
 
 ## License

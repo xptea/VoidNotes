@@ -68,7 +68,7 @@ const NoteEditor: React.FC = () => {
   const lastSavedContentRef = useRef<string>("");
   const pendingSaveRef = useRef<boolean>(false);
   const isTypingRef = useRef<boolean>(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const [modals, setModals] = useState({
     image: false,

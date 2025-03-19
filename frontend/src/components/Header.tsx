@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ title = "VoidWorks" }) => {
 
   return (
     <div 
-      className="h-10 flex items-center justify-between px-4 text-white bg-[rgba(0,0,0,0.2)]"
+      className="h-8 flex items-center justify-between px-4 text-white bg-[rgba(0,0,0,0.2)]"
       style={{ 
         "--wails-draggable": "drag",
         borderTopLeftRadius: "10px",

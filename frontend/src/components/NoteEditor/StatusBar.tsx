@@ -29,11 +29,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({ wordCount, charCount, isSa
   }, [isSaving]);
   
   return (
-    <div className="absolute bottom-3 right-5 flex items-center gap-3 text-xs text-white/60">
+    <div className="absolute bottom-4 right-4 flex items-center gap-3 text-xs text-white/60">
       <div 
         className={`flex items-center ${isSaving || showSaved || isHovering ? 'px-2' : 'px-1'} py-1 transition-all duration-300 ease-out
-          ${isSaving ? 'bg-white/10' : showSaved ? 'bg-green-600/20' : 'bg-white/10'} 
-          backdrop-blur-md rounded-full cursor-help relative`}
+          bg-white/10 backdrop-blur-md rounded-full cursor-help relative`}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >

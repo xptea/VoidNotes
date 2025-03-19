@@ -2,25 +2,22 @@ import Sidebar from '../pages/Sidebar.js';
 import MainContent from '../pages/Main.js';
 import Header from './Header.js';
 import Settings from './Settings.js';
-import { useEffect, useState } from 'react';
-import { Environment } from '../../wailsjs/runtime/runtime.js';
+import { useWindow } from '../contexts/WindowContext.js';
 
 interface LayoutProps {
   children?: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [isMac, setIsMac] = useState(false);
-  
-  useEffect(() => {
-    Environment().then((env) => {
-      setIsMac(env.platform === 'darwin');
-    });
-  }, []);
+  const { isMac } = useWindow();
 
   return (
     <div className="h-screen flex flex-col" style={{ background: 'transparent' }}>
-      {!isMac && <Header title="VoidWorks" />}
+      {!isMac && (
+        <div style={{ height: '32px' }}>
+          <Header title="VoidWorks" />
+        </div>
+      )}
       <div className="flex-1 flex overflow-hidden" style={{ background: 'transparent' }}>
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'transparent' }}>

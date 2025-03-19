@@ -19,14 +19,15 @@ const MainContent: React.FC<MainContentProps> = ({ className }) => {
                 borderBottomRightRadius: '10px',
             }}
         >
-            <div 
-                className="h-2"
-                style={{
-                    "--wails-draggable": "drag",
-                    backgroundColor: 'rgba(0, 0, 0, 0)',
-                } as React.CSSProperties}
-            >
-            </div>
+            {isMac && (
+                <div 
+                    className="h-2"
+                    style={{
+                        "--wails-draggable": "drag",
+                        backgroundColor: 'rgba(0, 0, 0, 0)',
+                    } as React.CSSProperties}
+                />
+            )}
             
             <div className="flex-1 overflow-hidden"
                 style={{

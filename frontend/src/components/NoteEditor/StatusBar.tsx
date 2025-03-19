@@ -58,7 +58,6 @@ export const StatusBar: React.FC<StatusBarProps> = ({ wordCount, charCount, isSa
           </svg>
         )}
         
-        {/* Storage location tooltip - positioned outside the parent element */}
         {isHovering && appDataDir && (
           <div className="fixed bottom-12 right-5 p-3 bg-black/80 backdrop-blur-md rounded-lg text-white/80 text-xs shadow-lg z-50 w-[300px] transition-opacity duration-300 ease-out">
             <div className="font-semibold mb-1">Notes are stored at:</div>

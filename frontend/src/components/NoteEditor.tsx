@@ -387,7 +387,7 @@ const NoteEditor: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
-      <div className="editor-container flex flex-col w-full h-[calc(100vh-6rem)] rounded-lg overflow-hidden border border-white/10">
+      <div className="editor-container flex flex-col w-full h-[calc(100vh-4rem)] rounded-lg overflow-hidden border border-white/10">
         <Toolbar 
           editor={editor || null} 
           onImageClick={() => setModals(prev => ({ ...prev, image: true }))}

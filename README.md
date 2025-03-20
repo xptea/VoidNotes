@@ -1,4 +1,5 @@
-# VoidNotes
+# VoidNotes 
+https://notes.voidworks.xyz/
 
 A modern, lightweight, and customizable note-taking application built with Go and React. VoidNotes combines elegant design with powerful features to help you organize your thoughts efficiently.
 

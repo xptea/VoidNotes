@@ -415,9 +415,11 @@ const NoteEditor: React.FC = () => {
     );
   }
 
-  // Add platform-specific container height: Windows gets h-[calc(100vh-5.5rem)], otherwise h-full.
+  const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const isWindows = typeof window !== "undefined" && window.navigator.platform.indexOf("Win") > -1;
-  const containerHeightClass = isWindows ? "h-[calc(100vh-5.5rem)]" : "h-full";
+  const containerHeightClass = isWindows ? "h-[calc(100vh-5.5rem)]" : 
+                               isMac ? "h-[calc(100vh-4rem)]" : 
+                               "h-full";
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">

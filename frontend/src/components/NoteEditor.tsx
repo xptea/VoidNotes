@@ -35,9 +35,10 @@ const EDITOR_EXTENSIONS = [
   OrderedList, 
   CodeBlock.configure({ 
     HTMLAttributes: {
-      class: 'hljs',
+      class: 'hljs code-block',
       spellcheck: 'false', 
     },
+    languageClassPrefix: 'language-',
   }), 
   DisableSpellcheckInCode,
   TextStyle, 
@@ -110,6 +111,9 @@ const NoteEditor: React.FC = () => {
       },
       handlePaste: (view: EditorView, event: ClipboardEvent) => {
         return false;
+      },
+      transformPastedHTML(html: string) {
+        return html;
       }
     }
   }), [scrollbarConfig]);
@@ -293,8 +297,34 @@ const NoteEditor: React.FC = () => {
     const editorDOM = editor.view.dom;
     editorDOM.addEventListener('keydown', handleKeyDown);
     
+    const refreshHighlighting = () => {
+      const codeBlocks = editorDOM.querySelectorAll('pre code');
+      if (codeBlocks.length > 0) {
+        import('highlight.js').then(hljs => {
+          codeBlocks.forEach(block => {
+            hljs.default.highlightElement(block as HTMLElement);
+            
+            setTimeout(() => {
+              const spans = block.querySelectorAll('span');
+              spans.forEach(span => {
+                if (!span.className.includes('hljs-')) {
+                  span.style.backgroundColor = 'transparent';
+                }
+              });
+            }, 100);
+          });
+        });
+      }
+    };
+    
+    editor.on('update', refreshHighlighting);
+    
+    // Run highlighting on initial render
+    setTimeout(refreshHighlighting, 200);
+    
     return () => {
       editor.off('update', updateHandler);
+      editor.off('update', refreshHighlighting);
       editorDOM.removeEventListener('keydown', handleKeyDown);
     };
   }, [editor, handleEditorUpdate, markAsTyping]);

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Environment } from '../../wailsjs/runtime/runtime.js';
+import { Environment} from '../../wailsjs/runtime/runtime.js';
 
 interface WindowContextType {
   isMac: boolean;
@@ -32,6 +32,7 @@ export const WindowProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         <div 
           className="h-7 w-full absolute top-0 left-0 z-50" 
           style={{ "--wails-draggable": "drag" } as React.CSSProperties}
+          onDoubleClick={() => (window as any).runtime.WindowToggleMaximise()}
         />
       )}
       {children}

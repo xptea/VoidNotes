@@ -1,6 +1,6 @@
 {
-  "name": "voidnotes",
-  "outputfilename": "voidnotes",
+  "name": "Void Notes",
+  "outputfilename": "Void Notes",
   "frontend:install": "bun install",
   "frontend:build": "bun run build",
   "frontend:dev:watcher": "bun run dev",
@@ -8,6 +8,5 @@
   "author": {
     "name": "xptea",
     "email": "80608102+xptea@users.noreply.github.com"
-  },
-  "obfuscate": true
+  }
 }

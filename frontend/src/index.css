@@ -35,7 +35,6 @@ html, body {
   border: none !important;
 }
 
-/* Custom Scrollbar Styles */
 .scrollbar-custom::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -55,7 +54,6 @@ html, body {
   background: transparent;
 }
 
-/* TipTap Editor Styles */
 .ProseMirror {
   height: 100%;
   overflow-y: auto;

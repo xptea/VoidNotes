@@ -75,23 +75,48 @@ const CodeBlock = CodeBlockLowlight.configure({
   lowlight,
   defaultLanguage: 'javascript', 
   HTMLAttributes: {
-    class: 'hljs',
+    class: 'hljs code-block p-4 rounded-md my-2',
     spellcheck: 'false',
   }
 }).extend({
+  renderHTML({ node, HTMLAttributes }) {
+    const { language } = node.attrs;
+    
+    return [
+      'pre',
+      { 
+        ...HTMLAttributes,
+        class: `hljs code-block language-${language || 'javascript'} p-4 rounded-md my-2`,
+        spellcheck: 'false',
+        style: 'background-color: rgba(25, 25, 25, 0.95);'
+      },
+      [
+        'code',
+        { 
+          class: `language-${language || 'javascript'}`,
+          spellcheck: 'false',
+          style: 'background-color: transparent; white-space: pre;'
+        },
+        0
+      ]
+    ];
+  },
   addNodeView() {
-    return ({ node }) => {
+    return ({ node, HTMLAttributes, getPos, editor }) => {
+      const { language } = node.attrs;
       const dom = document.createElement('pre');
       
       dom.setAttribute('spellcheck', 'false');
-      
-      dom.classList.add('hljs');
+      dom.className = `hljs code-block language-${language || 'javascript'} p-4 rounded-md my-2`;
+      dom.style.backgroundColor = 'rgba(25, 25, 25, 0.95)';
       
       const content = document.createElement('code');
       content.setAttribute('spellcheck', 'false');
+      content.style.backgroundColor = 'transparent';
+      content.style.whiteSpace = 'pre';
       
-      if (node.attrs.language) {
-        content.classList.add(`language-${node.attrs.language}`);
+      if (language) {
+        content.className = `language-${language}`;
       }
       
       dom.append(content);
@@ -99,6 +124,17 @@ const CodeBlock = CodeBlockLowlight.configure({
       return {
         dom,
         contentDOM: content,
+        update: (updatedNode) => {
+          if (updatedNode.type !== node.type) return false;
+          
+          if (updatedNode.attrs.language !== node.attrs.language) {
+            const newLanguage = updatedNode.attrs.language || 'javascript';
+            dom.className = `hljs code-block language-${newLanguage} p-4 rounded-md my-2`;
+            content.className = `language-${newLanguage}`;
+          }
+          
+          return true;
+        }
       };
     };
   }

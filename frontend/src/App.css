@@ -72,6 +72,8 @@ body, html {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  height: 100%;
+  overflow: hidden;
 }
 
 #root {
